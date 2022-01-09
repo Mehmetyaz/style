@@ -111,13 +111,17 @@ abstract class State<T extends StatefulComponent> {
   void initState() async {}
 }
 
+
+RandomGenerator _randomKey = RandomGenerator("[*]/l(20)");
+
 ///
+@immutable
 class Key {
   ///
   const Key(this.key);
 
   ///
-  Key.random() : key = getRandomId(20);
+  Key.random() : key = _randomKey.generateString();
 
   ///
   final String key;

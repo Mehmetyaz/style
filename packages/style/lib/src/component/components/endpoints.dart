@@ -172,8 +172,7 @@ class SimpleEndpoint extends Endpoint {
 /// ## Query
 class RestAccessPoint extends StatelessComponent {
   ///
-  const RestAccessPoint(this.route, {this.queryBuilder, Key? key})
-      : super(key: key);
+  RestAccessPoint(this.route, {this.queryBuilder, Key? key}) : super(key: key);
 
   ///
   final String route;
@@ -182,16 +181,19 @@ class RestAccessPoint extends StatelessComponent {
   final Query Function(Map<String, String> queryParameters)? queryBuilder;
 
   ///
+  final RandomGenerator randomIdentifier = RandomGenerator("[*#]/l(30)");
+
+  ///
   Access _create(Request request, BuildContext context) {
     try {
       var col = request.path.next;
-      var identifierKey = context.dataAccess.identifierMapping?[col] ?? "_id";
+      var identifierKey = context.dataAccess.identifierMapping?[col] ?? "_sid";
       var body = (request.body?.data) as Map<String, dynamic>;
       String identifier;
       if (body.containsKey(identifierKey)) {
         identifier = body[identifierKey]!;
       } else {
-        identifier = getRandomId(30);
+        identifier = randomIdentifier.generateString();
         body[identifierKey] = identifier;
       }
       return Access(
@@ -923,10 +925,14 @@ class CachedFile {
 ///
 class Favicon extends StatefulEndpoint {
   ///
-  Favicon(this.assetsPath);
+  Favicon(this.assetsPath, {RandomGenerator? etagGenerator})
+      : etagGenerator = etagGenerator ?? RandomGenerator("[a#]/l(30)");
 
   ///
   final String assetsPath;
+
+  ///
+  final RandomGenerator etagGenerator;
 
   @override
   EndpointState createState() => FaviconState();
@@ -962,7 +968,7 @@ class FaviconState extends EndpointState<Favicon> {
 
     var file = File(faviconPath);
     data = await file.readAsBytes();
-    tag = getRandomId(5);
+    tag = component.etagGenerator.generateString();
   }
 
   ///

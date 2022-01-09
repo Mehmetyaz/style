@@ -121,6 +121,12 @@
       <excludeFolder url="file://$MODULE_DIR$/style_monitoring/.dart_tool" />
       <excludeFolder url="file://$MODULE_DIR$/style_monitoring/.pub" />
       <excludeFolder url="file://$MODULE_DIR$/style_monitoring/build" />
+      <excludeFolder url="file://$MODULE_DIR$/style_client/.pub" />
+      <excludeFolder url="file://$MODULE_DIR$/style_client/.dart_tool" />
+      <excludeFolder url="file://$MODULE_DIR$/style_client/build" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/style_client/.pub" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/style_client/build" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/style_client/.dart_tool" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

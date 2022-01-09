@@ -638,7 +638,7 @@ typedef CountDbResult = DbResult<int>;
 // typedef ListenResult<T> = DbResult<StreamController<T>>;
 
 ///
-typedef ReadDbResult = DbResult<Map<String, dynamic>?>;
+typedef ReadDbResult = DbResult<Map<String, dynamic>>;
 
 ///
 typedef ArrayDbResult<T> = DbResult<List<T>?>;
@@ -652,11 +652,7 @@ typedef AggregationResult = ArrayDbResult<Map<String, dynamic>>;
 /// Database Operation Result
 class DbResult<T> {
   ///
-  DbResult(
-      {required this.data, this.statusCode, this.headers, this.success = true});
-
-  /// Operation is success
-  bool success;
+  DbResult({required this.data, this.statusCode, this.headers});
 
   ///
   T data;
@@ -701,6 +697,10 @@ class DeleteDbResult extends DbResult<Map<String, dynamic>?> {
 ///
 class SimpleCacheDataAccess extends DataAccessImplementation {
   ///
+  SimpleCacheDataAccess({RandomGenerator? idGenerator})
+      : _idGenerator = idGenerator ?? RandomGenerator("[*#]/l(30)");
+
+  ///
   final Map<String, Map<String, Map<String, dynamic>>> data = {};
 
   @override
@@ -708,19 +708,22 @@ class SimpleCacheDataAccess extends DataAccessImplementation {
     return true;
   }
 
+  final RandomGenerator _idGenerator;
+
   @override
   FutureOr<CreateDbResult> create(Access access) {
     if (access.data == null) {
       throw BadRequests();
     }
     String id;
-    if (access.identifier == null &&
-        access.data!["_id"] == null &&
-        access.data!["id"] == null) {
-      id = getRandomId(30);
-      access.data!["_id"] = id;
-    }
-    id = access.identifier ?? access.data!["id"] ?? access.data!["_id"]!;
+
+    var idKey = dataAccess.identifierMapping?[access.collection];
+    idKey ??= access.data!["id"] != null ? "id" : "_id";
+
+    id = access.identifier ??
+        access.data![idKey] ??
+        _idGenerator.generateString();
+    access.data![idKey] ??= id;
     data[access.collection] ??= {};
     data[access.collection]![id] = access.data!;
     return CreateDbResult(identifier: id);
@@ -746,7 +749,8 @@ class SimpleCacheDataAccess extends DataAccessImplementation {
     }
     var d = data[access.collection]?[access.identifier];
 
-    return ReadDbResult(data: d == null ? null : Map<String, dynamic>.from(d));
+    if (d == null) throw NotFoundException();
+    return ReadDbResult(data: Map<String, dynamic>.from(d));
   }
 
   @override
@@ -836,6 +840,52 @@ class SimpleCacheDataAccess extends DataAccessImplementation {
     throw UnimplementedError(
         "Aggregation not supported with Simple(Cache)DataAccess");
   }
+}
+
+///
+class StoreDelegate<T> {
+  ///
+  StoreDelegate(
+      {required this.collection,
+      DataAccess? customAccess,
+      required this.toMap,
+      required this.fromMap})
+      : _access = customAccess;
+
+  ///
+  DataAccess get access => _access!;
+
+  ///
+  void attach(BuildContext context) {
+    _access ??= DataAccess.of(context);
+  }
+
+  ///
+  Future<T> read(String id) async {
+    return fromMap(
+        (await access.read(Read(collection: collection, identifier: id))).data);
+  }
+
+  ///
+  Future<void> write(T instance) async {
+    await access.create(Create(collection: collection, data: toMap(instance)));
+  }
+
+  ///
+  Future<void> delete(String identifier) async {
+    await access.delete(Delete(collection: collection, identifier: identifier));
+  }
+
+  DataAccess? _access;
+
+  ///
+  String collection;
+
+  ///
+  Map<String, dynamic> Function(T instance) toMap;
+
+  ///
+  T Function(Map<String, dynamic> map) fromMap;
 }
 
 ///

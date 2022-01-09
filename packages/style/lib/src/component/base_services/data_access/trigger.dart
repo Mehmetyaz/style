@@ -90,10 +90,8 @@ class TriggerService {
     switch (type) {
       case TriggerType.onCreate:
         var _inter = await interoperation();
-        if (_inter.success) {
-          for (var tr in _trs) {
-            tr.onEvent(event);
-          }
+        for (var tr in _trs) {
+          tr.onEvent(event);
         }
         return _inter;
       case TriggerType.onUpdate:
@@ -103,15 +101,11 @@ class TriggerService {
 
         ///
         var _inter = (await interoperation()) as UpdateDbResult;
-        if (_inter.success) {
-          if (_afterNeed && _inter.newData == null) {
-            event.after ??= (await dataAccess._read(event.access)).data;
-          }
-          for (var tr in _trs) {
-            tr.onEvent(event);
-          }
-        } else {
-          return _inter as T;
+        if (_afterNeed && _inter.newData == null) {
+          event.after ??= (await dataAccess._read(event.access)).data;
+        }
+        for (var tr in _trs) {
+          tr.onEvent(event);
         }
 
         return _inter as T;
@@ -120,10 +114,8 @@ class TriggerService {
           event.before ??= (await dataAccess._read(event.access)).data;
         }
         var _inter = await interoperation();
-        if (_inter.success) {
-          for (var tr in _trs) {
-            tr.onEvent(event);
-          }
+        for (var tr in _trs) {
+          tr.onEvent(event);
         }
         return _inter;
       case TriggerType.onWrite:

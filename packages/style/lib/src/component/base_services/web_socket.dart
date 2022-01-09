@@ -20,93 +20,244 @@ part of '../../style_base.dart';
 ///
 abstract class WebSocketService extends _BaseService {
   ///
+  WebSocketService(
+      {RandomGenerator? connectionIdGenerator,
+      RandomGenerator? messageIdGenerator,
+      required StreamTransformerBase<dynamic, WebSocketMessage>
+          incomingTransformer,
+      required StreamTransformerBase<WebSocketMessage, List<int>>
+          outgoingTransformer})
+      : connectionIdGenerator =
+            connectionIdGenerator ?? RandomGenerator("[*#]/l(20)"),
+        messageIdGenerator =
+            connectionIdGenerator ?? RandomGenerator("./l(30)"),
+        _incomingTransformer = incomingTransformer,
+        _outgoingTransformer = outgoingTransformer;
+
+  ///
   static WebSocketService of(BuildContext context) {
     return context.socketService;
   }
 
+  final StreamTransformerBase<dynamic, WebSocketMessage> _incomingTransformer;
+  final StreamTransformerBase<WebSocketMessage, List<int>> _outgoingTransformer;
+
+  ///
+  final RandomGenerator connectionIdGenerator;
+
+  ///
+  final RandomGenerator messageIdGenerator;
+
   @override
   Future<bool> init([bool inInterface = true]) async {
-    //TODO: check http server already attached a websocket service
+    if (!context.hasService<HttpService>()) {
+      throw ArgumentError("WebSocket service need HttpService");
+    }
+    if (!context.hasService<Crypto>()) {
+      throw ArgumentError("WebSocket service need Crypto");
+    }
     return true;
   }
 
   ///
-  Component buildComponent(BuildContext context);
+  Component component(BuildContext context);
 
   /// WebSocket connections by client identifier
   HashMap<String, WebSocketConnection> connections = HashMap();
+
+  ///
+  HashMap<String, HashSet<String>> authorizedConnections = HashMap();
+
+  ///
+  void addConnection(WebSocketConnection connection) {
+    connections[connection.id] = connection;
+    if (connection.token != null) {
+      authorizedConnections[connection.token!.userId] ??=
+          HashSet.from(<String>{});
+      authorizedConnections[connection.token!.userId]!.add(connection.id);
+    }
+  }
+
+  ///
+  void removeConnection(String id) {
+    if (connections[id] == null) {
+      return;
+    }
+    var token = connections[id]?.token;
+    if (token != null) {
+      authorizedConnections[token.userId]?.remove(id);
+      if (authorizedConnections[token.userId]?.isEmpty ?? true) {
+        authorizedConnections.remove(token.userId);
+      }
+    }
+    connections.remove(id);
+  }
+
+  /// Set connection authorize status.
+  ///
+  /// If token isn't null connection identifier will
+  /// add to [authorizedConnections] and connection
+  /// auth status will switch to auth.
+  ///
+  ///
+  /// If token is null connection will remove from [authorizedConnections]
+  /// and connection status switch to un-auth.
+  ///
+  /// If switched to un-auth and WebSocketService need auth connection disposed
+  void setConnectionAuthorize(
+      {required String connectionId,
+      required AccessToken token,
+      required bool setAuth}) {
+    if (setAuth) {
+      authorizedConnections[token.userId] ??= HashSet<String>();
+      authorizedConnections[token.userId]?.add(token.userId);
+    } else {
+      authorizedConnections[token.userId]?.remove(connectionId);
+      if (authorizedConnections[token.userId]?.isEmpty ?? false) {
+        authorizedConnections.remove(token.userId);
+      }
+    }
+  }
+
+// Stream<WebSocketMessage> _transformMessage(Stream messageStream) async* {
+//   await for (var message in messageStream) {
+//     try {
+//       FutureOr<WebSocketMessage> _converting;
+//       if (message is String) {
+//         _converting = convertIncomingMessage(message);
+//       } else {
+//         _converting = convertIncomingMessage(utf8.decode(message));
+//       }
+//       if (_converting is Future) {
+//         (_converting as Future).timeout(Duration(seconds: 20));
+//       }
+//     } on Exception {
+//       //TODO: Log
+//     }
+//   }
+// }
+
+}
+
+class _DefaultWebSocketIncomingTransformer
+    extends StreamTransformerBase<dynamic, WebSocketMessage> {
+  @override
+  Stream<WebSocketMessage> bind(Stream<dynamic> stream) {
+    // TODO: implement bind
+    throw UnimplementedError();
+  }
+}
+
+class _DefaultWebSocketOutgoingTransformer
+    extends StreamTransformerBase<WebSocketMessage, List<int>> {
+  @override
+  Stream<List<int>> bind(Stream<WebSocketMessage> stream) {
+    // TODO: implement bind
+    throw UnimplementedError();
+  }
 }
 
 ///
-abstract class DefaultWebSocketService extends WebSocketService {
+abstract class StyleWebSocketService extends WebSocketService {
   ///
-  factory DefaultWebSocketService({bool allowOnlyAuth = true}) {
+  factory StyleWebSocketService({bool allowOnlyAuth = true}) {
     if (allowOnlyAuth) {
-      return AuthWebSocketService();
+      return TicketWebSocketService();
     }
-    return _StyleWebSocketService();
+    return BasicWebSocketService();
   }
 
   ///
   Future<WebSocketConnection> connect(HttpRequest request,
-      [WebSocketConnectionTicket? connectionRequest]);
+      [WebSocketConnectionRequest? connectionRequest]);
 
-  DefaultWebSocketService._();
+  StyleWebSocketService._()
+      : super(
+            incomingTransformer: _DefaultWebSocketIncomingTransformer(),
+            outgoingTransformer: _DefaultWebSocketOutgoingTransformer());
 }
 
-class _StyleWebSocketService extends DefaultWebSocketService {
-  _StyleWebSocketService() : super._();
+///
+class BasicWebSocketService extends StyleWebSocketService {
+  ///
+  BasicWebSocketService() : super._();
 
   @override
-  Component buildComponent(BuildContext context) {
+  Component component(BuildContext context) {
     return Gateway(children: [
-      Route("ws", root: SimpleEndpoint((r, c) async {
-        if (r is! HttpStyleRequest) {
-          throw BadRequests();
-        }
-        var con = await connect(r.baseRequest);
-        connections[con.id] = con;
-        return NoResponseRequired(request: r);
-      }))
+      Route("ws", handleUnknownAsRoot: true, root: SimpleEndpoint(_ws))
     ]);
   }
 
+  FutureOr<Object> _ws(Request request, BuildContext context) async {
+    try {
+      var connection = await connect((request as HttpStyleRequest).baseRequest);
+
+      if (connection.connected) {
+        return NoResponseRequired(request: request);
+      }
+      throw BadRequests();
+    } on Exception {
+      rethrow;
+    }
+  }
+
   @override
   Future<WebSocketConnection> connect(HttpRequest request,
-      [WebSocketConnectionTicket? connectionRequest]) async {
+      [WebSocketConnectionRequest? connectionRequest]) async {
     var socket = await WebSocketTransformer.upgrade(request);
     return WebSocketConnection(
-        socket: socket, context: context, id: getRandomId(40));
+        socket: socket,
+        id: connectionIdGenerator.generateString(),
+        webSocketService: this);
   }
 }
 
 ///
-class AuthWebSocketService extends DefaultWebSocketService {
+class TicketWebSocketService extends StyleWebSocketService {
   ///
-  AuthWebSocketService() : super._();
+  TicketWebSocketService({Authorization? customAuthorization})
+      : _authorization = customAuthorization,
+        super._();
+
+  ///
+  Authorization get authorization => _authorization!;
+
+  ///
+  Authorization? _authorization;
 
   /// WebSocket connection requests(tickets) by client identifier.
-  HashMap<String, WebSocketConnectionTicket> connectionTickets = HashMap();
+  HashMap<String, WebSocketConnectionRequest> connectionTickets = HashMap();
 
   @override
-  Component buildComponent(BuildContext context) {
+  Future<bool> init([bool inInterface = true]) {
+    if (!context.hasService<Authorization>()) {
+      throw ArgumentError("Ticket based websocket service require"
+          "auth service");
+    }
+    _authorization ??= context.authorization;
+    return super.init(inInterface);
+  }
+
+  @override
+  Component component(BuildContext context) {
     return Gateway(children: [
-      Route("{id}", child: Route("ws", root: SimpleEndpoint(_ws))),
-      Route("ticket_req", root: SimpleEndpoint(_ticketRequest))
+      Route("ws", root: SimpleEndpoint(_ws)),
+      Route("ws_req", root: SimpleEndpoint(_wsRequest))
     ]);
   }
 
-  FutureOr<Object> _ticketRequest(Request request, BuildContext context) async {
+  FutureOr<Object> _wsRequest(Request request, BuildContext context) async {
     try {
-      var token = request.token;
-
-      if (token == null) {
-        throw UnauthorizedException();
+      try {
+        await request.verifyTokenWith(authorization);
+      } on Exception {
+        rethrow;
       }
 
-      var id = getRandomId(40);
-      var ticket = WebSocketConnectionTicket(
-          token: token,
+      var id = connectionIdGenerator.generateString();
+      var ticket = WebSocketConnectionRequest(
+          token: request.token!,
           id: id,
           onTimeout: () {
             connectionTickets.remove(id);
@@ -114,7 +265,7 @@ class AuthWebSocketService extends DefaultWebSocketService {
 
       connectionTickets[id] = ticket;
 
-      return request.response(Body({"t": ticket.id}));
+      return request.response(Body({"ticket": ticket.id}));
     } on Exception {
       rethrow;
     }
@@ -122,7 +273,7 @@ class AuthWebSocketService extends DefaultWebSocketService {
 
   FutureOr<Object> _ws(Request request, BuildContext context) async {
     try {
-      var id = request.arguments["id"];
+      var id = request.path.queryParameters["id"];
       if (id == null) {
         throw PreconditionFailed();
       }
@@ -136,7 +287,7 @@ class AuthWebSocketService extends DefaultWebSocketService {
       var connection =
           await connect((request as HttpStyleRequest).baseRequest, ticket);
 
-      connections[id] = connection;
+      addConnection(connection);
 
       return NoResponseRequired(request: request);
     } on Exception {
@@ -146,8 +297,8 @@ class AuthWebSocketService extends DefaultWebSocketService {
 
   @override
   Future<WebSocketConnection> connect(HttpRequest request,
-      [WebSocketConnectionTicket? connectionTicket]) async {
-    if (connectionTicket == null) {
+      [WebSocketConnectionRequest? connectionRequest]) async {
+    if (connectionRequest == null) {
       throw UnauthorizedException();
     }
 
@@ -155,42 +306,50 @@ class AuthWebSocketService extends DefaultWebSocketService {
 
     return WebSocketConnection(
         socket: socket,
-        context: context,
         id: request.connectionInfo!.remoteAddress.host,
-        token: connectionTicket.token);
+        token: connectionRequest.token,
+        webSocketService: this);
   }
 }
 
 /// A web socket connection. Created at connected and disposed
 /// at connection end.
 class WebSocketConnection {
-  ///
+  /// Set token verified
   WebSocketConnection(
       {required this.id,
       required this.socket,
       this.token,
-      required this.context}) {
-
-    messages = socket.transform(
-        StreamTransformer<dynamic, WebSocketMessage>.fromBind((s) async* {
-      await for (var m in s) {}
-    })).asBroadcastStream();
+      required this.webSocketService}) {
+    // _listen();
+    _incomingController.sink
+        .addStream(socket.transform(webSocketService._incomingTransformer));
+    socket.addStream(_outgoingController.stream
+        .transform(webSocketService._outgoingTransformer));
+    _incomingController.onCancel = () {
+      dispose();
+      webSocketService.removeConnection(id);
+    };
   }
 
   ///
-  late WebSocketService service = WebSocketService.of(context);
+  void dispose() {
+    socket.close();
+    _incomingController.close();
+    _outgoingController.close();
+  }
 
   ///
   WebSocket socket;
 
   ///
-  BuildContext context;
-
-  ///
   AccessToken? token;
 
   ///
-  late Stream<WebSocketMessage> messages;
+  WebSocketService webSocketService;
+
+  ///
+  BuildContext get context => webSocketService.context;
 
   ///
   bool get connected => socket.closeCode == null;
@@ -199,20 +358,197 @@ class WebSocketConnection {
   String id;
 
   ///
-  void sendMessage(WebSocketMessage message) {
-    try {
-      socket.addUtf8Text(
-          utf8.encode(json.encode((message.body as JsonBody).data)));
-    } on Exception {
-      rethrow;
-    }
+  late final StreamController<WebSocketMessage> _incomingController =
+      StreamController<WebSocketMessage>.broadcast();
+
+  ///
+  late final StreamController<WebSocketMessage> _outgoingController =
+      StreamController<WebSocketMessage>();
+
+  ///
+  Stream<WebSocketMessage> get incoming => _incomingController.stream;
+
+  ///
+  Nonce? clientNonce, serverNonce;
+
+  ///
+  bool get nonceReceived => clientNonce != null && serverNonce != null;
+
+  ///
+  bool waitReceivedMessage = true;
+
+  ///
+  Duration waitTimeout = Duration(seconds: 30);
+
+  ///
+  Future<WebSocketMessage> send(WebSocketMessage message) {
+    var _completer = Completer<WebSocketMessage>();
+    incoming.firstWhere((element) => element.id == message.id).then((value) {
+      _completer.complete(value);
+    }).timeout(waitTimeout, onTimeout: () {
+      //TODO: Specify exception
+      throw Exception("Message Timeout");
+    }).catchError((e, s) {
+      _completer.completeError(e, s);
+    });
+    _outgoingController.sink.add(message);
+    return _completer.future;
   }
+
+// static FutureOr<WebSocketMessage?> Function(dynamic event) _convert(
+//     WebSocketConnection connection) {
+//   return (event) {
+//     dynamic jsonMessage;
+//     if (event is String) {
+//       jsonMessage = json.decode(event);
+//     } else {
+//       jsonMessage = json.decode(utf8.decode(event));
+//     }
+//
+//     if (jsonMessage is! Map<String, dynamic>) {
+//       Logger.of(connection.context)
+//           .warn(connection.context, "unexpected_ws_message",
+//               payload: {
+//                 "expected": "Map<String,dynamic>",
+//                 "actual": jsonMessage.runtimeType.toString(),
+//                 "connection": connection.id,
+//                 "token": connection.token?.toMap()
+//               },
+//               title: "Unexpected WebSocket Message is dangerous. "
+//                   "Messages that do not conform to the messaging protocol "
+//                   "can be an indication of an attack.");
+//       return null;
+//     }
+//
+//     if (jsonMessage["t"] == "r") {
+//       return WebSocketRequest(
+//           path: jsonMessage["p"],
+//           id: jsonMessage["i"],
+//           connection: connection,
+//           body: JsonBody(jsonMessage["d"]));
+//     } else if (jsonMessage["t"] == "cr") {
+//       return WebSocketClientResponse(
+//           id: jsonMessage["i"],
+//           eventName: jsonMessage["p"],
+//           connection: connection,
+//           body: JsonBody(jsonMessage["d"]));
+//     }
+//     return null;
+//   };
+// }
+
+// static FutureOr<WebSocketMessage?> Function(dynamic event)
+// _convertEncrypted(
+//     WebSocketConnection connection) {
+//   try {
+//     return (event) async {
+//       try {
+//         dynamic jsonMessage;
+//         if (event is String) {
+//           jsonMessage = json.decode(event);
+//         } else {
+//           jsonMessage = json.decode(utf8.decode(event));
+//         }
+//
+//         if (jsonMessage is! Map<String, dynamic>) {
+//           Logger.of(connection.context).warn(
+//               connection.context, "unexpected_ws_message",
+//               payload: {
+//                 "expected": "Map<String,dynamic>",
+//                 "actual": jsonMessage.runtimeType.toString(),
+//                 "connection": connection.id,
+//                 "token": connection.token?.toMap()
+//               },
+//               title: "Unexpected WebSocket Message is dangerous. "
+//                   "Messages that do not conform to the messaging protocol "
+//                   "can be an indication of an attack.");
+//           return null;
+//         }
+//
+//         if (!connection.nonceReceived) {
+//           if (jsonMessage["p"] == "n_e1" || jsonMessage["p"] == "n_e2") {
+//             return WebSocketClientResponse(
+//                 eventName: jsonMessage["p"],
+//                 id: jsonMessage["i"],
+//                 connection: connection,
+//                 body: JsonBody(jsonMessage["d"]));
+//           } else {
+//             Logger.of(connection.context).warn(
+//                 connection.context, "unexpected_ws_message",
+//                 payload: {
+//                   "expected": "\"n_e1\"||\"n_e2\"",
+//                   "actual": jsonMessage["p"],
+//                   "connection": connection.id,
+//                   "token": connection.token?.toMap()
+//                 },
+//                 title: "Unexpected WebSocket Event is dangerous. "
+//                     "Messages that do not
+//                     conform to the messaging protocol "
+//                     "can be an indication of an attack.");
+//             return null;
+//           }
+//         }
+//
+//         if (jsonMessage["d"] is String &&
+//         jsonMessage["d"].startsWith("en")) {
+//           jsonMessage["d"] = await Crypto.of(connection.context).decrypt(
+//               jsonMessage["d"].subString(2),
+//               connection.clientNonce!.bytes,
+//               connection.serverNonce!.bytes);
+//         } else {
+//           Logger.of(connection.context).warn(
+//               connection.context, "unexpected_ws_message",
+//               payload: {
+//                 "expected": "encrypted",
+//                 "actual": jsonMessage["d"],
+//                 "connection": connection.id,
+//                 "token": connection.token?.toMap()
+//               },
+//               title: "Unexpected WebSocket Event is dangerous. "
+//                   "Messages that do not conform to the messaging protocol "
+//                   "can be an indication of an attack.");
+//
+//           throw BadRequests();
+//         }
+//         return null;
+//       } on Exception {
+//         rethrow;
+//       }
+//     };
+//   } on Exception {
+//     rethrow;
+//   }
+// }
+
+// ///
+// void _listen() {
+//   if (webSocketService.messageEncryption) {
+//     socketStream =
+//         socket.asyncMap<WebSocketMessage?>(_convertEncrypted(this));
+//   } else {
+//     socketStream = socket.asyncMap<WebSocketMessage?>(_convert(this));
+//   }
+// }
+
+  ///
+//TODO:
+
 }
 
+
 ///
-class WebSocketConnectionTicket {
+mixin IncomingWebSocketMessageTransformer {
+
+}
+
+
+
+
+
+///
+class WebSocketConnectionRequest {
   ///
-  WebSocketConnectionTicket(
+  WebSocketConnectionRequest(
       {required this.token,
       required this.id,
       Duration timeout = const Duration(seconds: 30),

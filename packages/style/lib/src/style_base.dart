@@ -19,19 +19,22 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:json_schema2/json_schema2.dart';
 import 'package:meta/meta.dart';
 import 'package:queue/queue.dart' as q;
 import 'package:style_cron_job/style_cron_job.dart';
+import 'package:style_random/style_random.dart';
 
-import 'functions/random.dart';
 import 'functions/uint8_merge.dart';
 import 'models/json_schema.dart';
 part 'component/base_services/authorization.dart';
 
 part 'component/base_services/base.dart';
+
+part 'component/base_services/communication.dart';
 
 part 'component/base_services/crypto.dart';
 

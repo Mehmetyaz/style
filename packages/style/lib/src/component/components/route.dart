@@ -518,6 +518,7 @@ class PathController {
     this.queryParameters,
   ) : notProcessedValues = List.from(Uri.parse(calledPath).pathSegments);
 
+
   ///
   PathController.fromFullPath(this.calledPath)
       : notProcessedValues = List.from(Uri.parse(calledPath).pathSegments) {

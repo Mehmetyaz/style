@@ -209,6 +209,7 @@ class IfModifiedSinceMethod extends RevalidationMethod<DateTime> {
     if (headers != null && headers[h] != null && headers[h]!.isNotEmpty) {
       return HttpDate.parse(headers[h]!.first);
     }
+    return null;
   }
 
   @override

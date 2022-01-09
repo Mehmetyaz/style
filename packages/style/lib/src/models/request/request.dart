@@ -303,6 +303,22 @@ abstract class Request extends Message {
   }
 
   ///
+  FutureOr<void> verifyTokenWith(Authorization authorization) async {
+    try {
+      if (context.tokenVerified) {
+        return;
+      }
+      if (token == null) {
+        throw UnauthorizedException();
+      }
+      await authorization.verifyToken(token!);
+      context.tokenVerified = true;
+    } on Exception {
+      rethrow;
+    }
+  }
+
+  ///
   Future<bool> ensureResponded() async {
     if (_waiter != null) return await _waiter!.future;
     _waiter = Completer<bool>();
@@ -480,7 +496,7 @@ class NoResponseRequired extends Response {
 }
 
 ///
-mixin WebSocketMessage on Message {
+mixin WebSocketMessage {
   ///
   WebSocketConnection get connection;
 
@@ -489,6 +505,9 @@ mixin WebSocketMessage on Message {
 
   ///
   String? get eventIdentifier;
+
+  ///
+  JsonBody get body;
 }
 
 ///
@@ -519,9 +538,6 @@ class WebSocketRequest extends Request with WebSocketMessage {
               pathController: PathController.fromFullPath(path)),
         );
 
-  //TODO: WebSocketMessage mixin,
-  //TODO: listen message
-
   ///
   @override
   Response response(covariant JsonBody body,
@@ -546,6 +562,9 @@ class WebSocketRequest extends Request with WebSocketMessage {
   final String _id;
 
   final String? _eventIdentifier;
+
+  ///
+  JsonBody get body => body;
 
   @override
   WebSocketConnection get connection => _connection;
@@ -585,6 +604,8 @@ class WebSocketResponse extends Response with WebSocketMessage {
 
   final String? _eventIdentifier;
 
+  JsonBody get body => body;
+
   ///
   @override
   WebSocketConnection get connection => _connection;
@@ -596,52 +617,75 @@ class WebSocketResponse extends Response with WebSocketMessage {
   String? get eventIdentifier => _eventIdentifier;
 }
 
-// ///
-// class HttpResponse extends Response {
-//   ///
-//   HttpResponse(
-//       {required RequestContext context,
-//       required String fullPath,
-//       required Map<String, dynamic> body})
-//       : super(context: context, fullPath: fullPath, body: body);
-// }
-//
-// ///
-// class WsRequest extends Request {
-//   ///
-//   WsRequest(
-//       {required RequestContext context, required Map<String, dynamic> body})
-//       : super._(context: context, body: body, accepts: [ContentType.json]);
-// }
-//
-// // ///
-// // class WsResponse extends Response{
-// //   ///
-// //   WsResponse(
-// //       {required RequestContext context,
-// //       required String fullPath,
-// //       required Map<String, dynamic> body})
-// //       : super._(context: context, fullPath: fullPath, body: body);
-// // }
-//
-// ///
-// class InternalRequest extends Request {
-//   ///
-//   InternalRequest({required RequestContext context, required dynamic body})
-//       : super._(context: context, body: body, accepts: [
-//           ContentType.json,
-//           ContentType.text,
-//           ContentType.html,
-//           ContentType.binary
-//         ]);
-// }
+///
+class WebSocketServerRequest with WebSocketMessage {
+  ///
+  WebSocketServerRequest(
+      {String? customID,
+      required String eventName,
+      required WebSocketConnection connection,
+      required JsonBody body})
+      : _id = customID ??
+            connection.webSocketService.messageIdGenerator.generateString(),
+        _connection = connection,
+        _eventIdentifier = eventName,
+        _body = body;
 
-// ///
-// class InternalResponse extends Response {
-//   ///
-//   InternalResponse(
-//       {required RequestContext context,
-//       required String fullPath,
-//       required Map<String, dynamic> body})
-//       : super._(context: context, fullPath: fullPath, body: body);
-// }
+  ///
+  Future<WebSocketClientResponse> sendAndWaitResponse() async {
+    throw TimeoutException();
+  }
+
+  final WebSocketConnection _connection;
+
+  final String _id;
+
+  final String? _eventIdentifier;
+
+  final JsonBody _body;
+
+  JsonBody get body => _body;
+
+  @override
+  WebSocketConnection get connection => _connection;
+
+  @override
+  String get id => _id;
+
+  @override
+  String? get eventIdentifier => _eventIdentifier;
+}
+
+///
+class WebSocketClientResponse with WebSocketMessage {
+  ///
+  WebSocketClientResponse({
+    required String id,
+    required String eventName,
+    required WebSocketConnection connection,
+    required JsonBody body,
+  })  : _id = id,
+        _connection = connection,
+        _eventIdentifier = eventName,
+        _body = body;
+
+  final WebSocketConnection _connection;
+
+  final String _id;
+
+  final String? _eventIdentifier;
+
+  final JsonBody _body;
+
+  JsonBody get body => _body;
+
+  ///
+  @override
+  WebSocketConnection get connection => _connection;
+
+  @override
+  String get id => _id;
+
+  @override
+  String? get eventIdentifier => _eventIdentifier;
+}

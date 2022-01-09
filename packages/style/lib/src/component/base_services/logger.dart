@@ -20,9 +20,16 @@ part of '../../style_base.dart';
 /// Log everything
 abstract class Logger extends _BaseService {
   ///
+  Logger({RandomGenerator? logIdGenerator})
+      : loggerIdGenerator = logIdGenerator ?? RandomGenerator("[*#]/l(30)");
+
+  ///
   static Logger of(BuildContext context) {
     return context.logger;
   }
+
+  ///
+  final RandomGenerator loggerIdGenerator;
 
   ///
   void log(LogMessage logMessage);
@@ -82,6 +89,10 @@ abstract class Logger extends _BaseService {
 
 ///
 class DefaultLogger extends Logger {
+  ///
+  DefaultLogger({RandomGenerator? logIdGenerator})
+      : super(logIdGenerator: logIdGenerator);
+
   @override
   FutureOr<bool> init([bool inInterface = true]) async {
     return true;
@@ -116,7 +127,8 @@ class LogMessage {
       required this.level,
       this.payload,
       this.title})
-      : id = customId ?? getRandomId(20),
+      : id = customId ??
+            Logger.of(loggerContext).loggerIdGenerator.generateString(),
         time = DateTime.now();
 
   ///

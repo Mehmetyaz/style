@@ -17,6 +17,9 @@
 
 part of '../../style_base.dart';
 
+
+RandomGenerator _cronIDGenerator = RandomGenerator("#/l(5)");
+
 ///
 class CronJob extends StatelessComponent {
   ///
@@ -27,7 +30,10 @@ class CronJob extends StatelessComponent {
       this.allowExternal = false,
       String? name,
       GlobalKey? key})
-      : name = name ?? "cron_job_${timePeriod.runtimeType}${getRandomId(5)}";
+      : name = name ?? "cron_job_${_cronIDGenerator.generateString()}";
+
+
+
 
   ///
   final Future<Message?> Function(Request request, CronTimePeriod period)

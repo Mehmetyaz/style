@@ -20,6 +20,7 @@ import 'dart:io';
 
 import 'package:style_cron_job/style_cron_job.dart';
 import 'package:style_dart/style_dart.dart';
+import 'package:style_random/style_random.dart';
 
 void main() async {
   runService(ShelfExample());
@@ -67,14 +68,16 @@ class GetUserAppointments extends Endpoint {
 }
 
 class ShelfExample extends StatelessComponent {
-  const ShelfExample({Key? key}) : super(key: key);
+  ShelfExample({Key? key}) : super(key: key);
+
+  final RandomGenerator _generator =
+      RandomGenerator("/l(5)A{-}/l(10)[#a]/e(#)/s({AEIOU})");
 
   @override
   Component build(BuildContext context) {
     print(InternetAddress.anyIPv4.host);
     return Server(
-        httpService:
-            DefaultHttpServiceHandler(host: InternetAddress.anyIPv4.host),
+        httpService: DefaultHttpServiceHandler(host: "localhost", port: 8080),
         children: [
           // ContentDelivery("D:\\style\\packages\\style\\data\\",
           //     cacheFiles: true, useLastModified: true),
@@ -108,7 +111,12 @@ class ShelfExample extends StatelessComponent {
           //       </html>""");
           //     }))),
           MathRoutes(),
-
+          Route("random", root: SimpleEndpoint((c, _) {
+            return _generator.generateString();
+          }),
+              child: Route("{temp}", root: SimpleEndpoint((c, _) {
+                return RandomGenerator(c.arguments["temp"]).generateString();
+              }))),
           Route("cron",
               child: CronJob(
                   name: "5_sec",
@@ -117,6 +125,7 @@ class ShelfExample extends StatelessComponent {
                   timePeriod: every.x(15).second.period,
                   onCall: (r, p) async {
                     print("P: ${p.toTimeString()}");
+                    return null;
                   })),
 
           // ExceptionWrapper<StyleException>(
@@ -183,7 +192,7 @@ class _EndState extends EndpointState<MyIfNoneMatchEnd> {
   ///
   DateTime last = DateTime.now();
 
-  late String val = getRandomId(30);
+  late String val = RandomGenerator("[*#]/l(30)").generateString();
 
   @override
   FutureOr<Object> onCall(Request request) {

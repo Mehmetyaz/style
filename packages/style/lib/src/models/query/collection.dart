@@ -276,7 +276,7 @@ class Trigger {
   ///
   Trigger._(
       this.type, this.onEvent, this._beforeNeed, this._afterNeed, String? key)
-      : key = key ?? getRandomId(10);
+      : key = key ?? _randomKey.generateString();
 
   ///
   factory Trigger.onCreate({required OnEvent onEvent, String? key}) {

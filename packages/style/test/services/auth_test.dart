@@ -61,33 +61,33 @@ class AuthTestServer extends StatelessComponent {
   @override
   Component build(BuildContext context) {
     return Server(
-        authorization: SimpleAuthorization(),
+        // authorization: SimpleAuthorization(),
         dataAccess: DataAccess(SimpleCacheDataAccess()),
         cryptoService: MyEncHandler(
             tokenKey1: "11111111111111111111111111111111",
             tokenKey2: "11111111111111111111111111111111",
             tokenKey3: "11111111111111111111111111111111"),
         children: [
-          RouteBase("create", root: CreateTestToken()),
+          // RouteBase("create", root: CreateTestToken()),
           RouteBase("verify", root: VerifyToken())
         ]);
   }
 }
-
-class CreateTestToken extends Endpoint {
-  CreateTestToken() : super();
-
-  @override
-  FutureOr<Object> onCall(Request request) async {
-    var token = AccessToken.create(
-        context: context,
-        subject: "test",
-        deviceID: "",
-        userId: "test_user",
-        expire: DateTime(2022));
-    return (await context.authorization.encryptToken(token));
-  }
-}
+//
+// class CreateTestToken extends Endpoint {
+//   CreateTestToken() : super();
+//
+//   @override
+//   FutureOr<Object> onCall(Request request) async {
+//     var token = AccessToken.create(
+//         context: context,
+//         subject: "test",
+//         deviceID: "",
+//         userId: "test_user",
+//         expire: DateTime(2022));
+//     return (await context.authorization.encryptToken(token));
+//   }
+// }
 
 class VerifyToken extends Endpoint {
   VerifyToken() : super();

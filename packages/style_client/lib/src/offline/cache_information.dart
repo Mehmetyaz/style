@@ -17,7 +17,9 @@
 
 import 'package:http/http.dart' as http;
 
+///
 class CacheMetadata {
+  ///
   CacheMetadata(
       {required this.cachedTime,
       required this.isDiskCache,
@@ -29,16 +31,34 @@ class CacheMetadata {
   ///
   final DateTime cachedTime;
 
+  ///
   final bool isDiskCache;
 
+  ///
   final DateTime? lastModified;
 
+  ///
   final String? etag;
 
+  ///
   final CacheReason reason;
 
   //TODO: Change to StyleResponse
+  ///
   final http.Response? validationResponse;
 }
 
-enum CacheReason { immutable, ifNoneMatch, ifModifiedSince, age }
+///
+enum CacheReason {
+  ///
+  immutable,
+
+  ///
+  ifNoneMatch,
+
+  ///
+  ifModifiedSince,
+
+  ///
+  age
+}

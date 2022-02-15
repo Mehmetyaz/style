@@ -47,7 +47,7 @@ class MyServer extends StatelessComponent {
             DataAccess.of(ctx).create(Create(
                 request: req,
                 collection: "greeters",
-                data: {"id": req.arguments["name"]}));
+                data: CommonCreate({"id": req.arguments["name"]})));
             return ("Greet from ${req.arguments["name"]}");
           })),
 

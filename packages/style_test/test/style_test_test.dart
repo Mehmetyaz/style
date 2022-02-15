@@ -36,8 +36,8 @@ class MyTestServer extends StatelessComponent {
   Component build(BuildContext context) {
     return Server(children: [
       AuthFilterGate(
-          child:
-              RouteBase("onlyAuth", root: SimpleEndpoint.static("you are auth"))),
+          child: RouteBase("onlyAuth",
+              root: SimpleEndpoint.static("you are auth"))),
       RouteBase("everyone", root: SimpleEndpoint.static("it does not matter"))
     ]);
   }

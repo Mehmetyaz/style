@@ -17,6 +17,7 @@
 
 import 'package:meta/meta.dart';
 
+///
 class UserCredential {
   ///
   UserCredential(
@@ -118,14 +119,18 @@ class UserCredential {
   Map<String, dynamic>? additionalData;
 }
 
+///
 class AuthProvider {
+  ///
   AuthProvider({required this.id, required this.token, this.additionalData});
 
+  ///
   factory AuthProvider.fromJson(Map<String, dynamic> map) {
     return AuthProvider(
         id: map["i"], token: map["t"], additionalData: map["add"]);
   }
 
+  ///
   Map<String, dynamic> toJson() {
     return {
       "i": id,
@@ -134,8 +139,11 @@ class AuthProvider {
     };
   }
 
+  ///
   String id;
+  ///
   String token;
+  ///
   Map<String, dynamic>? additionalData;
 }
 

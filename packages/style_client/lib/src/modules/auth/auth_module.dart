@@ -18,21 +18,26 @@
 import 'dart:async';
 
 import 'package:meta/meta.dart';
-import 'package:style_client/src/modules/auth/user_credentials.dart';
 
 import '../modules.dart';
+import 'user_credentials.dart';
 
+///
 abstract class AuthModule extends StyleModule {
+  ///
   AuthModule({required String key}) : super(key: key);
 
+  ///
   Future<UserCredential> signInWithMailAndPassword(
       String mail, String password);
 
   @experimental
+  ///
   Future<UserCredential> signInWithPhoneAndPassword(
       String phone, String password);
 
   @experimental
+  ///
   Future<UserCredential> signInWithUserNameAndPassword(
       String userName, String password);
 
@@ -43,9 +48,11 @@ abstract class AuthModule extends StyleModule {
   // Future<UserCredential> signInWithSmsLink(String mail, String password);
 
   @experimental
+  ///
   Future<UserCredential> signInWithAuthProvider(String mail, String password);
 
   @experimental
+  ///
   Future<UserCredential> signInWithSmsCode(String phone);
 
 // @experimental
@@ -56,17 +63,21 @@ abstract class AuthModule extends StyleModule {
 
 ///
 mixin SmsVerificationSession {
+  ///
   SmsVerificationStatus status = SmsVerificationStatus.idle;
 
+  ///
   String get phone;
 
   ///
   Duration get timeout;
 
+  ///
   void reSendCodeSms() {
     _startRemaining();
   }
 
+  ///
   Future<SmsVerificationInfo> verifyCode(String code) {
     throw 0;
   }
@@ -74,6 +85,7 @@ mixin SmsVerificationSession {
   late final StreamController<Duration?> _remainingController =
       StreamController<Duration>.broadcast();
 
+  ///
   Stream<Duration?> get remainingSeconds => _remainingController.stream;
 
   ///
@@ -93,6 +105,7 @@ mixin SmsVerificationSession {
     });
   }
 
+  ///
   void endSession() {
     _remainingController.close();
     if (_timer.isActive) _timer.cancel();
@@ -101,6 +114,7 @@ mixin SmsVerificationSession {
 
 ///
 class SmsVerificationInfo {
+  ///
   SmsVerificationInfo({required this.id, required this.expire});
 
   ///
@@ -112,10 +126,16 @@ class SmsVerificationInfo {
 
 ///
 enum SmsVerificationStatus {
+  ///
   idle,
+  ///
   codeSent,
+  ///
   verificationWaiting,
+  ///
   verified,
+  ///
   notVerified,
+  ///
   timeout,
 }

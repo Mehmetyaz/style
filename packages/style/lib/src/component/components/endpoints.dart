@@ -178,7 +178,7 @@ class RestAccessPoint extends StatelessComponent {
   final String route;
 
   ///
-  final Query Function(Map<String, String> queryParameters)? queryBuilder;
+  final CommonQuery Function(Map<String, String> queryParameters)? queryBuilder;
 
   ///
   final RandomGenerator randomIdentifier = RandomGenerator("[*#]/l(30)");
@@ -196,11 +196,11 @@ class RestAccessPoint extends StatelessComponent {
         identifier = randomIdentifier.generateString();
         body[identifierKey] = identifier;
       }
-      return Access(
+      return CommonAccess(
           type: AccessType.create,
           collection: col,
           identifier: identifier,
-          data: body);
+          create: CommonCreate(body));
     } on Exception {
       rethrow;
     }
@@ -210,7 +210,7 @@ class RestAccessPoint extends StatelessComponent {
   Access _read(Request request) {
     try {
       //TODO: check not processed is not empty
-      return Access(
+      return CommonAccess(
           type: AccessType.read,
           collection: request.path.next,
           identifier: request.path.notProcessedValues.first);
@@ -222,12 +222,13 @@ class RestAccessPoint extends StatelessComponent {
   ///
   Access _readList(Request request) {
     try {
-      return Access(
+      return CommonAccess(
           type: AccessType.readMultiple,
           collection: request.path.next,
           query: queryBuilder?.call(request.path.queryParameters) ??
-              Query.fromMap(
-                  json.decode((request.path.queryParameters["q"]) ?? "{}")));
+              CommonQuery.fromMap(request.path.queryParameters["q"] != null
+                  ? json.decode(request.path.queryParameters["q"]!)
+                  : null));
     } on Exception {
       rethrow;
     }
@@ -236,11 +237,11 @@ class RestAccessPoint extends StatelessComponent {
   ///
   Access _update(Request request) {
     try {
-      return Access(
+      return CommonAccess(
           type: AccessType.update,
           collection: request.path.next,
           identifier: request.path.notProcessedValues.first,
-          data: (request.body?.data) as Map<String, dynamic>);
+          update: CommonUpdate((request.body?.data) as Map<String, dynamic>));
     } on Exception {
       rethrow;
     }
@@ -250,7 +251,7 @@ class RestAccessPoint extends StatelessComponent {
   Access _delete(Request request) {
     try {
       //TODO: check not processed is not empty
-      return Access(
+      return CommonAccess(
           type: AccessType.delete,
           collection: request.path.next,
           identifier: request.path.notProcessedValues.first);

@@ -23,8 +23,27 @@ import 'package:style_dart/style_dart.dart';
 import 'package:style_random/style_random.dart';
 
 void main() async {
-  runService(ShelfExample());
-  Stream.periodic(Duration(seconds: 1), (i) => i).listen(print);
+  runService(ExampleServer());
+}
+
+class ExampleServer extends StatelessComponent {
+  @override
+  Component build(BuildContext context) {
+    return Server(
+        httpService: DefaultHttpServiceHandler(host: "localhost", port: 8080),
+        children: [
+          Route("hello", root: HelloEndpoint()),
+        ]);
+  }
+}
+
+class HelloEndpoint extends Endpoint {
+  @override
+  FutureOr<Object> onCall(Request request) {
+    return "<html>"
+        "<h1>Hello World!</h1>"
+        "</html>";
+  }
 }
 
 class MyEx implements Exception {
@@ -236,6 +255,25 @@ class _EndState extends EndpointState<MyIfNoneMatchEnd> {
 //
 // }
 
+class MathOperationRoute1 extends StatelessComponent {
+  MathOperationRoute1(this.name, this.operation);
+
+  final String name;
+  final num Function(int a, int b) operation;
+
+  @override
+  Component build(BuildContext context) {
+    return Route(name,
+        child: Route("{a}",
+            root: Throw(FormatException()),
+            child: Route("{b}", root: SimpleEndpoint((request, _) {
+              var a = int.parse(request.arguments["a"]);
+              var b = int.parse(request.arguments["b"]);
+              return {"a": a, "b": b, name: operation(a, b)};
+            }))));
+  }
+}
+
 class MathOperationRoute extends StatelessComponent {
   MathOperationRoute(this.name, this.operation);
 
@@ -247,17 +285,12 @@ class MathOperationRoute extends StatelessComponent {
     return ExceptionWrapper(
         child: RouteBase(name,
             root: Throw(FormatException()),
-            child: SubRoute("{a}",
+            child: Route("{a}",
                 root: Throw(FormatException()),
-                child: SubRoute("{b}", root: SimpleEndpoint((request, _) {
+                child: Route("{b}", root: SimpleEndpoint((request, _) {
                   var a = int.parse(request.arguments["a"]);
                   var b = int.parse(request.arguments["b"]);
-                  return {
-                    "isolate": request.body?.data,
-                    "a": a,
-                    "b": b,
-                    name: operation(a, b)
-                  };
+                  return {"a": a, "b": b, name: operation(a, b)};
                 })))),
         exceptionEndpoint: FormatExEnd());
   }

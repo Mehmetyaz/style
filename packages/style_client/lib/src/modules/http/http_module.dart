@@ -17,13 +17,15 @@
 
 import 'dart:async';
 
-import 'package:style_client/src/modules/conversation/conversation_mixin.dart';
-import 'package:style_client/src/modules/conversation/request.dart';
-import 'package:style_client/src/modules/conversation/response.dart';
+import '../conversation/conversation_mixin.dart';
+import '../conversation/request.dart';
+import '../conversation/response.dart';
 
 import '../modules.dart';
 
+///
 class HttpClientModule extends StyleModule with ConversationMixin {
+  ///
   HttpClientModule({required String key}) : super(key: key);
 
   @override

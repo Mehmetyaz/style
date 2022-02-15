@@ -15,24 +15,28 @@
  *
  */
 
-import 'package:style_client/src/modules/access/access_result.dart';
-import 'package:style_client/src/modules/access/query.dart';
-import 'package:style_client/src/offline/cache_options.dart';
-import 'package:style_client/src/offline/offline_operation_options.dart';
-
+import '../../offline/cache_options.dart';
+import '../../offline/offline_operation_options.dart';
 import '../../random.dart';
 import '../modules.dart';
+import 'access_result.dart';
+import 'query.dart';
 
+///
 abstract class AccessImplementation {
   ///
   String get endpointPath => module.endpointPath;
+  ///
   late AccessModule module;
 
+  ///
   Future<ReadResult> read(String collection,
       {String? identifier, Query? query});
 
+  ///
   Future<ReadMultipleResult> readMultiple(String collection, {Query? query});
 
+  ///
   Future<CreateResult> create(String collection,
       {required Map<String, dynamic> data, String? identifier});
 
@@ -40,14 +44,18 @@ abstract class AccessImplementation {
   Future<UpdateResult> update(String collection,
       {required Map<String, dynamic> data, Query? query, String? identifier});
 
+  ///
   Future<ExistsResult> exists(String collection,
       {Query? query, String? identifier});
 
+  ///
   Future<DeleteResult> delete(String collection,
       {Query? query, String? identifier});
 
+  ///
   Future<CountResult> count(String collection, {Query? query});
 
+  ///
   Future<AggregationResult> aggregate(String collection,
       {List<Map<String, dynamic>> pipeline});
 }
@@ -67,17 +75,20 @@ abstract class AccessModule extends StyleModule {
   ///
   final AccessImplementation implementation;
 
+  ///
   Future<ReadResult> read(String collection,
       {String? identifier, Query? query, CacheOptions? options}) {
     return implementation.read(collection,
         query: query, identifier: identifier);
   }
 
+  ///
   Future<ReadMultipleResult> readMultiple(String collection,
       {Query? query, CacheOptions? cacheOptions}) {
     return implementation.readMultiple(collection, query: query);
   }
 
+  ///
   Future<CreateResult> create(String collection,
       {required Map<String, dynamic> data,
       String? identifier,
@@ -96,12 +107,14 @@ abstract class AccessModule extends StyleModule {
         data: data, query: query, identifier: identifier);
   }
 
+  ///
   Future<ExistsResult> exists(String collection,
       {Query? query, String? identifier, CacheOptions? cacheOptions}) {
     return implementation.exists(collection,
         identifier: identifier, query: query);
   }
 
+  ///
   Future<DeleteResult> delete(String collection,
       {Query? query,
       String? identifier,
@@ -110,11 +123,13 @@ abstract class AccessModule extends StyleModule {
         identifier: identifier, query: query);
   }
 
+  ///
   Future<CountResult> count(String collection,
       {Query? query, String? identifier, CacheOptions? cacheOptions}) {
     return implementation.count(collection, query: query);
   }
 
+  ///
   Future<AggregationResult> aggregate(String collection,
       {Query? query,
       String? identifier,

@@ -127,6 +127,15 @@
       <excludeFolder url="file://$MODULE_DIR$/packages/style_client/.pub" />
       <excludeFolder url="file://$MODULE_DIR$/packages/style_client/build" />
       <excludeFolder url="file://$MODULE_DIR$/packages/style_client/.dart_tool" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/style_database/.dart_tool" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/style_database/build" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/style_database/.pub" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/style_query/.pub" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/style_query/.dart_tool" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/style_query/build" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/berber_server/.pub" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/berber_server/.dart_tool" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/berber_server/build" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

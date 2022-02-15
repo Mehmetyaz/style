@@ -18,13 +18,17 @@
 import 'dart:async';
 
 import 'package:meta/meta.dart';
-import 'package:style_client/src/modules/conversation/request.dart';
-import 'package:style_client/src/modules/conversation/response.dart';
-import 'package:style_client/src/modules/modules.dart';
 
+import '../modules.dart';
+import 'request.dart';
+import 'response.dart';
+
+///
 mixin ConversationMixin on StyleModule {
+  ///
   Future<StyleResponse> request(StyleRequest request);
 
+  ///
   @protected
   void listen(
       FutureOr<StyleClientResponse> Function(StyleServerRequest request)

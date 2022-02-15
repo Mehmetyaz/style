@@ -23,24 +23,20 @@ abstract class WebSocketService extends _BaseService {
   WebSocketService(
       {RandomGenerator? connectionIdGenerator,
       RandomGenerator? messageIdGenerator,
-      required StreamTransformerBase<dynamic, WebSocketMessage>
-          incomingTransformer,
-      required StreamTransformerBase<WebSocketMessage, List<int>>
-          outgoingTransformer})
+      required WebSocketMessageTransformer messageTransformer})
       : connectionIdGenerator =
             connectionIdGenerator ?? RandomGenerator("[*#]/l(20)"),
         messageIdGenerator =
             connectionIdGenerator ?? RandomGenerator("./l(30)"),
-        _incomingTransformer = incomingTransformer,
-        _outgoingTransformer = outgoingTransformer;
+        _messageTransformer = messageTransformer;
 
   ///
   static WebSocketService of(BuildContext context) {
     return context.socketService;
   }
 
-  final StreamTransformerBase<dynamic, WebSocketMessage> _incomingTransformer;
-  final StreamTransformerBase<WebSocketMessage, List<int>> _outgoingTransformer;
+  ///
+  final WebSocketMessageTransformer _messageTransformer;
 
   ///
   final RandomGenerator connectionIdGenerator;
@@ -139,24 +135,6 @@ abstract class WebSocketService extends _BaseService {
 
 }
 
-class _DefaultWebSocketIncomingTransformer
-    extends StreamTransformerBase<dynamic, WebSocketMessage> {
-  @override
-  Stream<WebSocketMessage> bind(Stream<dynamic> stream) {
-    // TODO: implement bind
-    throw UnimplementedError();
-  }
-}
-
-class _DefaultWebSocketOutgoingTransformer
-    extends StreamTransformerBase<WebSocketMessage, List<int>> {
-  @override
-  Stream<List<int>> bind(Stream<WebSocketMessage> stream) {
-    // TODO: implement bind
-    throw UnimplementedError();
-  }
-}
-
 ///
 abstract class StyleWebSocketService extends WebSocketService {
   ///
@@ -172,9 +150,7 @@ abstract class StyleWebSocketService extends WebSocketService {
       [WebSocketConnectionRequest? connectionRequest]);
 
   StyleWebSocketService._()
-      : super(
-            incomingTransformer: _DefaultWebSocketIncomingTransformer(),
-            outgoingTransformer: _DefaultWebSocketOutgoingTransformer());
+      : super(messageTransformer: DefaultWSMessageTransformer());
 }
 
 ///
@@ -321,22 +297,21 @@ class WebSocketConnection {
       required this.socket,
       this.token,
       required this.webSocketService}) {
-    // _listen();
-    _incomingController.sink
-        .addStream(socket.transform(webSocketService._incomingTransformer));
-    socket.addStream(_outgoingController.stream
-        .transform(webSocketService._outgoingTransformer));
-    _incomingController.onCancel = () {
-      dispose();
-      webSocketService.removeConnection(id);
-    };
+    _listen();
+  }
+
+  void _listen() {
+    socket.listen((event) async {
+      _incomingController.sink.add(
+          await webSocketService._messageTransformer.convertIncoming(event));
+    });
+    //TODO:
   }
 
   ///
   void dispose() {
     socket.close();
     _incomingController.close();
-    _outgoingController.close();
   }
 
   ///
@@ -360,10 +335,6 @@ class WebSocketConnection {
   ///
   late final StreamController<WebSocketMessage> _incomingController =
       StreamController<WebSocketMessage>.broadcast();
-
-  ///
-  late final StreamController<WebSocketMessage> _outgoingController =
-      StreamController<WebSocketMessage>();
 
   ///
   Stream<WebSocketMessage> get incoming => _incomingController.stream;
@@ -391,7 +362,7 @@ class WebSocketConnection {
     }).catchError((e, s) {
       _completer.completeError(e, s);
     });
-    _outgoingController.sink.add(message);
+    //TODO: _outgoingController.sink.add(message);
     return _completer.future;
   }
 
@@ -535,15 +506,29 @@ class WebSocketConnection {
 
 }
 
-
 ///
-mixin IncomingWebSocketMessageTransformer {
+class DefaultWSMessageTransformer with WebSocketMessageTransformer {
+  @override
+  FutureOr<WebSocketMessage> convertIncoming(Object raw) {
+    // TODO: implement convertIncoming
+    throw UnimplementedError();
+  }
 
+  @override
+  FutureOr<List<int>> convertOutgoing(WebSocketMessage message) {
+    // TODO: implement convertOutgoing
+    throw UnimplementedError();
+  }
 }
 
+///
+mixin WebSocketMessageTransformer {
+  ///
+  FutureOr<WebSocketMessage> convertIncoming(Object raw);
 
-
-
+  ///
+  FutureOr<List<int>> convertOutgoing(WebSocketMessage message);
+}
 
 ///
 class WebSocketConnectionRequest {

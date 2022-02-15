@@ -16,7 +16,7 @@
  */
 
 
-import 'package:style_client/src/modules/access/query.dart';
+import 'query.dart';
 
 ///
 class Access {
@@ -71,6 +71,7 @@ class Access {
   };
 }
 
+///
 enum AccessType {
   ///
   read,

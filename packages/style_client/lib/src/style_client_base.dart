@@ -23,7 +23,9 @@ import 'modules/modules.dart';
 ///
 final StyleClient client = StyleClient();
 
+///
 class StyleClient {
+  ///
   factory StyleClient() => _client;
 
   StyleClient._();
@@ -37,6 +39,7 @@ class StyleClient {
   ///
   bool _wsPreferred = true;
 
+  ///
   FutureOr<void> init(
       {required String serverAddress,
       List<StyleModule>? modules,
@@ -108,6 +111,7 @@ class StyleClient {
   /// server root address
   late String serverAddress;
 
+  ///
   late Map<String, StyleModule> modules;
 
   /// If module is not exists the function throw error
@@ -117,21 +121,28 @@ class StyleClient {
     return modules.values.whereType<T>().first;
   }
 
+  ///
   StyleModule? moduleByKey(String key) {
     return modules[key];
   }
 }
 
 
+///
 abstract class EncryptionModule extends StyleModule {
+  ///
   EncryptionModule({required String key}) : super(key: key);
 }
 
+///
 abstract class WebSocketModule extends StyleModule {
+  ///
   WebSocketModule({required String key}) : super(key: key);
 }
 
+///
 abstract class AnalyticsModule extends StyleModule {
+  ///
   AnalyticsModule({required String key}) : super(key: key);
 }
 

@@ -72,24 +72,24 @@ class TriggerService {
   }
 
   ///Trigger
-  FutureOr<T> triggerAndReturn<T extends DbResult>(
-      AccessEvent event, FutureOr<T> Function() interoperation) async {
+  FutureOr<T> triggerAndReturn<T extends DbResult, L extends AccessLanguage>(
+      AccessEvent<L> event, FutureOr<T> Function(Access<L> acc) interoperation) async {
     var type = _getTriggerType(event.type);
-    if (type == TriggerType.non) return interoperation();
+    if (type == TriggerType.non) return interoperation(event.access);
 
     var _trs = <Trigger>[
       ...?_triggers[event.access.collection]?[type],
       ...?_triggers[event.access.collection]?[TriggerType.onWrite]
     ];
 
-    if (_trs.isEmpty) return interoperation();
+    if (_trs.isEmpty) return interoperation(event.access);
 
     var _befNeed = _trs.where((element) => element._beforeNeed).isNotEmpty;
     var _afterNeed = _trs.where((element) => element._afterNeed).isNotEmpty;
 
     switch (type) {
       case TriggerType.onCreate:
-        var _inter = await interoperation();
+        var _inter = await interoperation(event.access);
         for (var tr in _trs) {
           tr.onEvent(event);
         }
@@ -100,7 +100,7 @@ class TriggerService {
         }
 
         ///
-        var _inter = (await interoperation()) as UpdateDbResult;
+        var _inter = (await interoperation(event.access)) as UpdateDbResult;
         if (_afterNeed && _inter.newData == null) {
           event.after ??= (await dataAccess._read(event.access)).data;
         }
@@ -113,7 +113,7 @@ class TriggerService {
         if (_befNeed) {
           event.before ??= (await dataAccess._read(event.access)).data;
         }
-        var _inter = await interoperation();
+        var _inter = await interoperation(event.access);
         for (var tr in _trs) {
           tr.onEvent(event);
         }
@@ -126,30 +126,4 @@ class TriggerService {
     }
   }
 }
-//
-// ///
-// @immutable
-// class StreamListener {
-//   ///
-//   StreamListener(this.consumer, {String? customId})
-//       : identifier = customId ?? getRandomId(30);
-//
-//   ///
-//   final String identifier;
-//
-//   ///
-//   final StreamController consumer;
-//
-//   @override
-//   bool operator ==(Object other) {
-//     return other is StreamListener && other.identifier == identifier;
-//   }
-//
-//   @override
-//   int get hashCode => identifier.hashCode;
-//
-//   ///
-//   void close() {
-//
-//   }
-// }
+

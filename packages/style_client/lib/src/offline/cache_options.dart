@@ -15,6 +15,7 @@
  *
  */
 
+///
 class CacheOptions {
   ///
   CacheOptions(
@@ -31,9 +32,16 @@ class CacheOptions {
 
   ///
   final bool forceNoCache;
+
+  ///
   final bool onlyDiskCache;
+
+  ///
   final bool onlyMemoryCache;
 
+  ///
   final String? customEtag;
+
+  ///
   final DateTime? customModifiedSince;
 }

@@ -23,7 +23,9 @@ import 'access/access_module.dart';
 import 'auth/auth_module.dart';
 import 'http/http_module.dart';
 
+///
 abstract class StyleModule {
+  ///
   StyleModule(
       {required this.key,
         String? customAuthModuleKey,

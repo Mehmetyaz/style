@@ -434,13 +434,6 @@ class _CacheControlWithRevalidation extends CacheControl {
   @override
   FutureOr<Message> onRequest(Request request,
       FutureOr<Message> Function(Request p1) childCalling) async {
-    var rrrR = request.path.calledPath ==
-        "/packages/build_web_compilers/src/dev_compiler_stack_trace/stack_trace_mapper.dart.js";
-
-    if (rrrR) {
-      print("BURADAAAA2");
-    }
-
     var r = await cacheControl.revalidation!.method
         ._validateAndReturn(request, childCalling);
     addHeaders(r);
@@ -592,46 +585,3 @@ class _CacheControlBinding extends SingleChildCallingBinding {
     super.attachToParent(parent);
   }
 }
-
-///
-// class EndpointCallingWithCacheControl<T> extends EndpointCalling {
-//   ///
-//   EndpointCallingWithCacheControl(
-//       EndpointCallingBinding endpoint)
-//       : super(endpoint);
-//
-//   //
-//   // @override
-//   // FutureOr<Message> onCall(Request request) async {
-//   //   try {
-//   //     if (request is ValidationRequest<T>) {
-//   //       var val = await validate(request);
-//   //       if (val is ValidationResponse<T>) {
-//   //         return val;
-//   //       } else if (val is T) {
-//   //         return ValidationResponse.fromRequest(request, val);
-//   //       } else {
-//   //         throw ArgumentError("Validate function should return"
-//   //             " validation data(String or DateTime) or ValidationRequest()");
-//   //       }
-//   //     } else {
-//   //       return await binding.component.onCall(request);
-//   //     }
-//   //   } on Exception {
-//   //     rethrow;
-//   //   }
-//   // }
-// }
-//
-// class _LastModifiedCalling extends
-// EndpointCallingWithCacheControl<DateTime> {
-//   _LastModifiedCalling(EndpointCallingBinding
-//   endpoint)
-//       : super(endpoint, (endpoint.component as
-//       LastModifiedMixin).lastModified);
-// }
-//
-// class _EtagCalling extends EndpointCallingWithCacheControl<String> {
-//   _EtagCalling(EndpointCallingBinding endpoint)
-//       : super(endpoint, (endpoint.component as EtagMixin).etag);
-// }

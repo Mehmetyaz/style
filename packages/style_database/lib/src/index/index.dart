@@ -63,6 +63,9 @@ class SortedIndex<T extends Comparable> extends Indexer<T> {
       values.add(value);
       values.sort((a, b) => a.compareTo(b));
     }
+
+
+
   }
 
   ///

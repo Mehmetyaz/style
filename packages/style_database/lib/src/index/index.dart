@@ -15,8 +15,11 @@
  *
  */
 
+import 'package:binary_tree/binary_tree.dart';
+import 'package:style_query/style_query.dart';
+
 ///
-abstract class Indexer<V extends Comparable> {
+abstract class Indexer<V extends Object> {
   ///
   Indexer(this.key);
 
@@ -24,16 +27,41 @@ abstract class Indexer<V extends Comparable> {
   String key;
 
   ///
-  IndexMatch<V> getMatch(MatchExpression<V> expression);
+  IndexMatch<V> getMatches(
+      FilterExpression expression, SortExpression sort, int offset, int? limit);
 
-  ///
-  IndexMatch<V> getMatchesWith();
+  bool _isMatch(MatchExpression<V> expression);
 
   ///
   Map<V, dynamic> get getIndex;
 
   ///
   void indexObject(String id, V value);
+}
+
+///
+class UniqueIndex<T extends Object> extends Indexer<T> {
+  ///
+  UniqueIndex(String key) : super(key);
+
+  @override
+  Map<T, dynamic> get getIndex => throw UnimplementedError();
+
+  @override
+  void indexObject(String id, T value) {}
+
+  @override
+  IndexMatch<T> getMatches(FilterExpression expression, SortExpression sort,
+      int offset, int? limit) {
+    // TODO: implement getMatches
+    throw UnimplementedError();
+  }
+
+  @override
+  bool _isMatch(MatchExpression<T> expression) {
+    // TODO: implement _isMatch
+    throw UnimplementedError();
+  }
 }
 
 /// Multiple
@@ -48,7 +76,7 @@ class SortedIndex<T extends Comparable> extends Indexer<T> {
   final Map<T, List<String>> index = {};
 
   ///
-  final List<T> values = <T>[];
+  final BinaryTree<T> values = BinaryTree<T>();
 
   @override
   Map<T, dynamic> get getIndex => index;
@@ -57,278 +85,40 @@ class SortedIndex<T extends Comparable> extends Indexer<T> {
   void indexObject(String id, T value) {
     index[value] ??= <String>[];
     index[value]!.add(id);
-
-    var where = values.indexOf(value);
-    if (where == -1) {
-      values.add(value);
-      values.sort((a, b) => a.compareTo(b));
-    }
-
-
-
-  }
-
-  ///
-  int getObjectIndex(ComparisonExpression<T> expression) {
-
-
-
-    var full = values.length;
-    var half = (full / 2).ceil();
-
-    int? res;
-
-
-    half_loop:
-    while (res == null){
-        var _i = _check(half);
-        if (_i.last) {
-
-          if (half < 2 ) {
-            if (ascending) {
-              if (expression.greater) {
-                res = 0;
-              } else {
-                res = -2;
-              }
-            } else {
-              if (expression.greater) {
-
-              } else {
-
-              }
-            }
-          }
-
-
-
-
-          res = half < 2 ? 0 : values.length;
-          continue half_loop;
-        }
-        if (_i.index != null) {
-          res = _i.index;
-          continue half_loop;
-        }
-
-
-
-    }
-
-
-    throw Exception();
-  }
-
-  _IndexFindResult _check(int index) {
-
-
-
-
-
-
-
-    throw Exception();
-  }
-
-  /// Check index - 1 , index and index + 1 satisfy
-  /// list val > value
-  /// örnekte 60 tan büyüğü arıyorum
-  _IndexFindResult _checkMiddle(List<int> l, int index, int value) {
-    if (l[index] < value) {
-      /// ortadaki 60 dan küçükse
-      /// sağa bak
-      if (l.length - 1 > index) {
-        /// sağda var
-
-        if (l[index + 1] >= value) {
-          /// sağdaki 60'tan büyük veya eşit
-          return _IndexFindResult(
-              index: index + 1,
-              //left: false,
-              last: false,
-              equal: l[index + 1] == value);
-        } else {
-          return _IndexFindResult(
-              index: null,/* left: false,*/ last: false, equal: false);
-        }
-      } else {
-        /// sağda yok
-        return _IndexFindResult(
-            index: null,/* left: null,*/ last: true, equal: false);
-      }
-    } else if (l[index] == value) {
-      return _IndexFindResult(
-          index: index,/* left: false,*/ last: false, equal: true);
-    } else {
-      /// ortadaki büyük sola bak
-      if (index > 0) {
-        /// solda var
-        if (l[index - 1] > value) {
-          /// soldaki büyük
-          return _IndexFindResult(
-              index: null,/* left: true,*/ last: false, equal: false);
-        } else if (l[index - 1] == value) {
-          /// soldaki eşit
-          return _IndexFindResult(
-              index: index - 1, /*left: false,*/ last: false, equal: true);
-        } else {
-          /// soldaki küçük
-          return _IndexFindResult(
-              index: null,/* left: false,*/ last: false, equal: false);
-        }
-      } else {
-        /// solda yok
-        return _IndexFindResult(
-            index: null, /*left: true,*/ last: true, equal: false);
-      }
-    }
   }
 
   @override
-  IndexMatch<T> getMatch(MatchExpression<T> expression) {
+  IndexMatch<T> getMatches(FilterExpression expression, SortExpression sort,
+      int offset, int? limit) {
+    // TODO: implement getMatches
     throw UnimplementedError();
   }
 
   @override
-  IndexMatch<T> getMatchesWith() {
+  bool _isMatch(MatchExpression<T> expression) {
+    // TODO: implement _isMatch
     throw UnimplementedError();
-  }
-}
-
-
-
-
-
-
-
-class _IndexFindResult {
-  _IndexFindResult({this.index, required this.last,required this.equal});
-
-  int? index;
-  bool last;
-  bool equal;
-
-
-  @override
-  String toString() {
-    return "i: $index \nis_last: $last \nis_eq: $equal";
   }
 }
 
 ///
-abstract class IndexMatch<V> {
+class IndexMatch<V> {
   ///
-  IndexMatch(this.indexer);
+  IndexMatch(this.query, this.indexer);
 
   ///
   Indexer indexer;
 
   ///
-  List<V> getResult();
+  Query query;
 
   ///
-  List<V> getResultWith(Indexer other);
-}
-
-///
-abstract class MatchExpression<Q extends Object> {
-  ///
-  MatchExpression(this.queryValue);
+  List<V> getResult() {
+    throw UnimplementedError();
+  }
 
   ///
-  Q queryValue;
-
-  ///
-  bool compareTo(Q value);
-}
-
-///
-class EqualExpression<Q extends Object> extends MatchExpression<Q> {
-  ///
-  EqualExpression(Q queryValue) : super(queryValue);
-
-  @override
-  bool compareTo(Q value) => value == queryValue;
-}
-
-///
-class NotEqualExpression<Q extends Object> extends MatchExpression<Q> {
-  ///
-  NotEqualExpression(Q queryValue) : super(queryValue);
-
-  @override
-  bool compareTo(Q value) => value != queryValue;
-}
-
-///
-mixin ComparisonExpression<Q extends Comparable> on MatchExpression<Q> {
-  bool get equal;
-  bool get greater;
-}
-
-///
-class GreaterExpression<Q extends Comparable> extends MatchExpression<Q>
-    with ComparisonExpression {
-  ///
-  GreaterExpression(Q queryValue) : super(queryValue);
-
-  @override
-  bool compareTo(Q value) => value.compareTo(queryValue) > 0;
-
-  @override
-  bool get equal => false;
-
-  @override
-  bool get greater => true;
-}
-
-///
-class LessExpression<Q extends Comparable> extends MatchExpression<Q>
-    with ComparisonExpression {
-  ///
-  LessExpression(Q queryValue) : super(queryValue);
-
-  @override
-  bool compareTo(Q value) => value.compareTo(queryValue) < 0;
-
-  @override
-  bool get equal => false;
-
-  @override
-  bool get greater => false;
-
-
-}
-
-///
-class GreaterOrEqualExpression<Q extends Comparable> extends MatchExpression<Q>
-    with ComparisonExpression {
-  ///
-  GreaterOrEqualExpression(Q queryValue) : super(queryValue);
-
-  @override
-  bool compareTo(Q value) => value.compareTo(queryValue) > -1;
-
-  @override
-  bool get equal => true;
-
-  @override
-  bool get greater => true;
-
-}
-
-///
-class LessOrEqualExpression<Q extends Comparable> extends MatchExpression<Q>
-    with ComparisonExpression {
-  ///
-  LessOrEqualExpression(Q queryValue) : super(queryValue);
-
-  @override
-  bool compareTo(Q value) => value.compareTo(queryValue) < 1;
-
-  @override
-  bool get equal => true;
-
-  @override
-  bool get greater => false;
+  List<V> getResultWith(IndexMatch other) {
+    throw Exception();
+  }
 }

@@ -36,7 +36,7 @@ void main() async {
                   Trigger.onCreate(onEvent: (event) async {
                     print("On Create Triggered");
                     createTriggered++;
-                    after = event.access.create!.data;
+                    after = event.access.create!.toMap();
                   }),
                   Trigger.onWrite(onEvent: (event) async {
                     print("On Write Triggered");

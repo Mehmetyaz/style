@@ -15,53 +15,38 @@
  *
  */
 
-import 'package:style_database/src/index/index.dart';
+import 'package:style_query/style_query.dart';
 import 'package:test/expect.dart';
 import 'package:test/scaffolding.dart';
 
 void main() {
-  group("num", () {
+  group("match", () {
     var a = 10;
     var b = 20;
     var c = 10;
-    var d = 40;
-    var e = 5;
+
+    var map = {"a": 10, "b": 20, "c": 10, "d": 40, "e": 5};
 
     test("eq", () {
-      var exp = EqualExpression(a);
+      var exp = EqualExpression("a", a);
       expect(exp.compareTo(c), true);
       expect(exp.compareTo(b), false);
     });
 
+    test("eq_isMatch", () {
+      expect(EqualExpression("c", a).isMatch(map), true);
+      expect(EqualExpression("b", a).isMatch(map), false);
+    });
+
     test("ne", () {
-      var exp = NotEqualExpression(a);
+      var exp = NotEqualExpression("a", a);
       expect(exp.compareTo(c), false);
       expect(exp.compareTo(b), true);
     });
 
-    test("gt", () {
-      var exp = GreaterExpression(b);
-      expect(exp.compareTo(a), false);
-      expect(exp.compareTo(d), true);
-    });
-
-    test("gte", () {
-      var exp = GreaterOrEqualExpression(c);
-      expect(exp.compareTo(a), true);
-      expect(exp.compareTo(e), false);
-    });
-
-    test("ls", () {
-      var exp = LessExpression(c);
-      expect(exp.compareTo(e), true);
-      expect(exp.compareTo(b), false);
-    });
-
-    test("lse", () {
-      var exp = LessOrEqualExpression(c);
-      expect(exp.compareTo(e), true);
-      expect(exp.compareTo(b), false);
-      expect(exp.compareTo(a), true);
+    test("ne_isMatch", () {
+      expect(NotEqualExpression("c", a).isMatch(map), false);
+      expect(NotEqualExpression("b", a).isMatch(map), true);
     });
   });
 }

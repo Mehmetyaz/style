@@ -125,16 +125,14 @@ class Read<L extends AccessLanguage> extends AccessEvent<L> {
   Read(
       {Request? request,
       required String collection,
-      String? identifier,
-      Query<L>? query,
+      required Query<L> query,
       AccessToken? customToken})
-      : assert(identifier != null || query != null),
+      :
         super(
             request: request?..token = customToken,
             access: Access<L>(
                 type: AccessType.read,
                 collection: collection,
-                identifier: identifier,
                 query: query));
 }
 
@@ -191,16 +189,14 @@ class Delete<L extends AccessLanguage> extends AccessEvent<L> {
   Delete(
       {Request? request,
       required String collection,
-      String? identifier,
-      Query<L>? query,
+      required Query<L> query,
       AccessToken? customToken})
-      : assert(identifier != null || query != null),
+      :
         super(
             request: request?..token = customToken,
             access: Access<L>(
                 type: AccessType.delete,
                 collection: collection,
-                identifier: identifier,
                 query: query));
 }
 
@@ -225,14 +221,12 @@ class Exists<L extends AccessLanguage> extends AccessEvent<L> {
   Exists(
       {Request? request,
       required String collection,
-      Query<L>? query,
-      String? identifier,
+      required Query<L> query,
       AccessToken? customToken})
-      : assert(identifier != null || query != null),
+      :
         super(
             request: request?..token = customToken,
             access: Access<L>(
-                identifier: identifier,
                 type: AccessType.exists,
                 collection: collection,
                 query: query));

@@ -37,7 +37,7 @@ class PermissionHandler {
       return true;
     }
     var validator = StyleValidator(await create);
-    var valid = validator.validate(a.access.create!.data);
+    var valid = validator.validate(a.access.create!.toMap());
     if (!valid) {
       a.errors = validator.errorObjects.map((e) => e.toMapEntry()).toList();
     }
@@ -51,7 +51,7 @@ class PermissionHandler {
     }
 
     var validator = StyleValidator(await update);
-    var valid = validator.validate(a.access.update!.data);
+    var valid = validator.validate(a.access.update!.toMap());
     if (!valid) {
       a.errors = validator.errorObjects.map((e) => e.toMapEntry()).toList();
     }

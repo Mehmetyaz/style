@@ -6,10 +6,11 @@ publish_to: none
 
 
 environment:
-  sdk: '>=2.16.0-135.0.dev <3.0.0'
+  sdk: '>=2.15.0 <3.0.0'
 
 
 dependencies:
+  binary_tree: ^1.0.2
   style_random: ^0.0.1+1
   style_query:
     path: ../style_query

@@ -30,20 +30,21 @@ class Confirmatory {
     this.confirmationCollection,
     RandomGenerator? sessionIdGenerator,
   })  : _delegate = confirmatoryDelegate,
-        key = key ?? Key.random(),
+        key = key ?? Key.random()
         /*   _sessionStore = _defaultSessionStorage(
             customSessionDataAccess, customSessionCollection),
         _confirmationStore = _defaultConfirmationStorage(
           customConfirmationCollection,
           customConfirmationDataAccess,
         ),*/
-        _sessionIDGenerator =
-            sessionIdGenerator ?? RandomGenerator("[*#]/l(30)");
+        /*_sessionIDGenerator =
+            sessionIdGenerator ?? RandomGenerator("[*#]/l(30)");*/;
 
   ///
   final Key key;
 
-  final RandomGenerator _sessionIDGenerator;
+  ///
+  ///final RandomGenerator _sessionIDGenerator;
 
   ///
   ConfirmationType get type => _delegate.type;

@@ -15,15 +15,15 @@
  *
  */
 
-import 'dart:collection';
-import 'dart:convert';
+import 'package:style_query/style_query.dart';
+import 'package:style_random/style_random.dart';
 
 import '../index/index.dart';
 
 ///
-class Collection<T extends DbObject> {
+class Collection {
   ///
-  Collection(this.name);
+  Collection(this.name, this._randomGenerator);
 
   ///
   String name;
@@ -32,59 +32,23 @@ class Collection<T extends DbObject> {
   Map<String, Indexer> indexes = {};
 
   ///
-  HashMap<String, T> objects = HashMap();
+  final RandomGenerator _randomGenerator;
 
   ///
-  void add(T data) {
-    objects[data.id] = data;
+  void add(JsonMap data) {
+    data["id"] ??= _randomGenerator.generateString();
     if (indexes.isNotEmpty) {
       for (var key in indexes.keys) {
-        var p = data.getProperty(key);
-        if (p != null) {
-          indexes[key]?.indexObject(data.id, p);
-        }
+        indexes[key]!.indexObject(data["id"], data[key]);
       }
     }
   }
 
   ///
-  void createIndexes<T>(
-    String field, {
+  void createIndexes<T>(String field, {
     bool unique = false,
     bool ascending = true,
   }) {
     indexes[field] = SortedIndex<int>(field, ascending: ascending);
   }
-}
-
-///
-abstract class DbObject {
-  ///
-  DbObject();
-
-  ///
-  T? getProperty<T>(String key);
-
-  ///
-  String get id;
-}
-
-///
-class MapDbObject extends DbObject {
-  ///
-  MapDbObject(this.data, this._id);
-
-  ///
-  final Map<String, dynamic> data;
-
-  ///
-  final String _id;
-
-  @override
-  T? getProperty<T>(String key) {
-    return data[key] as T?;
-  }
-
-  @override
-  String get id => _id;
 }

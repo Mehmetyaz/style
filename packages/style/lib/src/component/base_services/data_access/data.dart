@@ -329,7 +329,6 @@ class _DataAccessWithPermission<L extends AccessLanguage>
   }
 }
 
-
 ///
 abstract class DataAccessImplementation<L extends AccessLanguage> {
   ///
@@ -463,8 +462,9 @@ class DeleteDbResult extends DbResult<Map<String, dynamic>?> {
 ///
 class SimpleCacheDataAccess extends DataAccessImplementation<CommonLanguage> {
   ///
-  SimpleCacheDataAccess({RandomGenerator? idGenerator})
-      : _idGenerator = idGenerator ?? RandomGenerator("[*#]/l(30)");
+  SimpleCacheDataAccess({RandomGenerator? idGenerator});
+
+  //: //_idGenerator = idGenerator ?? RandomGenerator("[*#]/l(30)");
 
   ///
   final Map<String, Map<String, Map<String, dynamic>>> data = {};
@@ -474,54 +474,56 @@ class SimpleCacheDataAccess extends DataAccessImplementation<CommonLanguage> {
     return true;
   }
 
-  final RandomGenerator _idGenerator;
+  //final RandomGenerator _idGenerator;
 
   @override
   FutureOr<CreateDbResult> create(Access<CommonLanguage> access) {
-    if (access.create == null) {
-      throw BadRequests();
-    }
-    String id;
-
-    var data = access.create!.data;
-
-    var idKey = dataAccess.identifierMapping?[access.collection];
-    idKey ??= data["id"] != null ? "id" : "_id";
-
-    id = access.identifier ?? data[idKey] ?? _idGenerator.generateString();
-    data[idKey] ??= id;
-    data[access.collection] ??= {};
-    data[access.collection]![id] = data;
-    return CreateDbResult(identifier: id);
+    throw UnimplementedError();
+    // if (access.create == null) {
+    //   throw BadRequests();
+    // }
+    // String id;
+    //
+    // var data = access.create!.toMap();
+    //
+    // var idKey = dataAccess.identifierMapping?[access.collection];
+    // idKey ??= data["id"] != null ? "id" : "_id";
+    //
+    // id = access.identifier ?? data[idKey] ?? _idGenerator.generateString();
+    // data[idKey] ??= id;
+    // data[access.collection] ??= {};
+    // data[access.collection]![id] = data;
+    // return CreateDbResult(identifier: id);
   }
 
   @override
   FutureOr<DeleteDbResult> delete(Access<CommonLanguage> access) {
-    if (access.identifier == null) {
-      throw BadRequests();
-    }
-    if (data[access.collection]?[access.identifier!] == null) {
-      return DeleteDbResult(exists: false);
-    } else {
-      data[access.collection]!.remove(access.identifier);
-      return DeleteDbResult(exists: true);
-    }
+    throw UnimplementedError();
+    // if (access.identifier == null) {
+    //   throw BadRequests();
+    // }
+    // if (data[access.collection]?[access.identifier!] == null) {
+    //   return DeleteDbResult(exists: false);
+    // } else {
+    //   data[access.collection]!.remove(access.identifier);
+    //   return DeleteDbResult(exists: true);
+    // }
   }
 
   @override
   Future<ReadDbResult> read(Access<CommonLanguage> access) async {
-    if (access.identifier == null) {
-      throw BadRequests();
-    }
-    var d = data[access.collection]?[access.identifier];
-
-    if (d == null) throw NotFoundException();
-    return ReadDbResult(data: Map<String, dynamic>.from(d));
+    throw UnimplementedError();
+    // if (access.identifier == null) {
+    //   throw BadRequests();
+    // }
+    // var d = data[access.collection]?[access.identifier];
+    //
+    // if (d == null) throw NotFoundException();
+    // return ReadDbResult(data: Map<String, dynamic>.from(d));
   }
 
   @override
   FutureOr<ReadListResult> readList(covariant CommonAccess access) {
-
     var q = access.query as CommonQuery?;
 
     if (q?.selector != null) {
@@ -535,8 +537,8 @@ class SimpleCacheDataAccess extends DataAccessImplementation<CommonLanguage> {
           title: "Query sort "
               "not supported with SimpleCacheDataAccess , so its skipped");
     }
-    if (q?.fields != null) {
-      Logger.of(context).warn(context, "sort_not_supported",
+    if (access.query?.fields != null) {
+      Logger.of(context).warn(context, "fields_not_supported",
           title: "Query fields "
               "not supported with SimpleCacheDataAccess , so its skipped");
     }
@@ -567,14 +569,16 @@ class SimpleCacheDataAccess extends DataAccessImplementation<CommonLanguage> {
 
   @override
   FutureOr<UpdateDbResult> update(Access<CommonLanguage> access) {
-    if (access.update == null) {
-      throw BadRequests();
-    }
-    if (access.identifier == null) {
-      throw BadRequests();
-    }
-    data[access.collection]?[access.identifier]?.addAll(access.update!.data);
-    return UpdateDbResult(data: null);
+    throw UnimplementedError();
+    // if (access.update == null) {
+    //   throw BadRequests();
+    // }
+    // if (access.identifier == null) {
+    //   throw BadRequests();
+    // }
+    // data[access.collection]?[access.identifier]
+    // ?.addAll(access.update!.toMap());
+    // return UpdateDbResult(data: null);
   }
 
   @override
@@ -589,19 +593,20 @@ class SimpleCacheDataAccess extends DataAccessImplementation<CommonLanguage> {
 
   @override
   FutureOr<DbResult<bool>> exists(Access<CommonLanguage> access) {
-    // TODO: implement exists
-    if (access.query != null) {
-      Logger.of(context).warn(context, "query_not_supported",
-          title: "Query "
-              "not supported with SimpleCacheDataAccess , so its skipped");
-    }
-
-    if (access.identifier == null) {
-      throw BadRequests();
-    }
-
-    return DbResult<bool>(
-        data: data[access.collection]?[access.identifier!] != null);
+    throw UnimplementedError();
+    // // TODO: implement exists
+    // if (access.query != null) {
+    //   Logger.of(context).warn(context, "query_not_supported",
+    //       title: "Query "
+    //           "not supported with SimpleCacheDataAccess , so its skipped");
+    // }
+    //
+    // if (access.identifier == null) {
+    //   throw BadRequests();
+    // }
+    //
+    // return DbResult<bool>(
+    //     data: data[access.collection]?[access.identifier!] != null);
   }
 
   @override

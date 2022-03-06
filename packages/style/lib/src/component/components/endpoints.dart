@@ -197,10 +197,7 @@ class RestAccessPoint extends StatelessComponent {
         body[identifierKey] = identifier;
       }
       return CommonAccess(
-          type: AccessType.create,
-          collection: col,
-          identifier: identifier,
-          create: CommonCreate(body));
+          type: AccessType.create, collection: col, create: CommonCreate(body));
     } on Exception {
       rethrow;
     }
@@ -211,9 +208,10 @@ class RestAccessPoint extends StatelessComponent {
     try {
       //TODO: check not processed is not empty
       return CommonAccess(
-          type: AccessType.read,
-          collection: request.path.next,
-          identifier: request.path.notProcessedValues.first);
+        type: AccessType.read,
+        collection: request.path.next,
+        query: CommonQuery(id: request.path.notProcessedValues.first),
+      );
     } on Exception {
       rethrow;
     }
@@ -240,7 +238,9 @@ class RestAccessPoint extends StatelessComponent {
       return CommonAccess(
           type: AccessType.update,
           collection: request.path.next,
-          identifier: request.path.notProcessedValues.first,
+          query: CommonQuery(
+            id: request.path.notProcessedValues.first
+          ),
           update: CommonUpdate((request.body?.data) as Map<String, dynamic>));
     } on Exception {
       rethrow;
@@ -254,7 +254,9 @@ class RestAccessPoint extends StatelessComponent {
       return CommonAccess(
           type: AccessType.delete,
           collection: request.path.next,
-          identifier: request.path.notProcessedValues.first);
+        query: CommonQuery(
+            id: request.path.notProcessedValues.first
+        ),);
     } on Exception {
       rethrow;
     }

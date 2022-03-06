@@ -20,17 +20,19 @@ import '../style_query.dart';
 ///
 class CommonLanguage extends AccessLanguage {
   @override
-  // TODO: implement name
-  String get name => throw UnimplementedError();
+  String get name => "common";
 }
 
 ///
 class CommonQuery extends Query<CommonLanguage> {
   ///
-  CommonQuery({this.selector, this.fields, this.limit, this.offset, this.sort});
+  CommonQuery({this.id, this.selector, this.limit, this.offset, this.sort});
 
   ///
-  Map<String, dynamic>? selector, sort, fields;
+  String? id;
+
+  ///
+  Map<String, dynamic>? selector, sort;
 
   ///
   @override
@@ -39,7 +41,6 @@ class CommonQuery extends Query<CommonLanguage> {
   ///
   factory CommonQuery.fromMap(Map<String, dynamic> map) {
     return CommonQuery(
-      fields: map["fields"],
       sort: map["sort"],
       offset: map["offset"],
       limit: map["limit"],
@@ -47,10 +48,28 @@ class CommonQuery extends Query<CommonLanguage> {
     );
   }
 
-  ///
   @override
-  Map<String, dynamic> toMap() => {
-        if (fields != null) "fields": fields,
+  FilterExpression? filteredBy(String key) {
+    throw UnimplementedError();
+  }
+
+  @override
+  bool isReached(String key, String value) {
+    throw UnimplementedError();
+  }
+
+  @override
+  bool? fieldIsExcluded(String key) {
+    throw UnimplementedError();
+  }
+
+  @override
+  bool? fieldIsIncluded(String key) {
+    throw UnimplementedError();
+  }
+
+  @override
+  JsonMap toMap() => {
         if (sort != null) "sort": sort,
         if (offset != null) "offset": offset,
         if (limit != null) "limit": limit,
@@ -58,34 +77,18 @@ class CommonQuery extends Query<CommonLanguage> {
       };
 
   @override
-  FilterExpression? filteredBy(String key) {
-    // TODO: implement filteredBy
-    throw UnimplementedError();
-  }
+  String? get identifier => throw UnimplementedError();
 
   @override
-  bool isReached(String key, String value) {
-    // TODO: implement isReached
-    throw UnimplementedError();
-  }
+  Fields<CommonLanguage>? fields;
 
   @override
-  bool? sortedByAsc(String key) {
-    // TODO: implement sortedBy
-    throw UnimplementedError();
-  }
+  FilterExpression? get filter => throw UnimplementedError();
 
   @override
-  bool? fieldIsExcluded(String key) {
-    // TODO: implement fieldIsExcluded
-    throw UnimplementedError();
-  }
-
-  @override
-  bool? fieldIsIncluded(String key) {
-    // TODO: implement fieldIsIncluded
-    throw UnimplementedError();
-  }
+  // TODO: implement sortExpression
+  SortExpression<AccessLanguage>? get sortExpression =>
+      throw UnimplementedError();
 }
 
 ///
@@ -93,46 +96,42 @@ class CommonUpdate extends UpdateData<CommonLanguage> {
   ///
   CommonUpdate(this._data);
 
-  final Map<String, dynamic> _data;
-
-  @override
-  Map<String, dynamic> get data => _data;
+  final JsonMap _data;
 
   @override
   UpdateDifference<T>? difference<T>(String key) {
-    // TODO: implement difference
     throw UnimplementedError();
   }
 
   @override
-  bool isChangedField(String key) {
-    // TODO: implement isChangedField
-    throw UnimplementedError();
-  }
+  JsonMap toMap() => _data;
 
   @override
-  bool keyIsRenamed(String key) {
-    // TODO: implement keyIsRenamed
-    throw UnimplementedError();
-  }
+  List<String> keysRenamed() => throw UnimplementedError();
 
   @override
-  bool keyRemoved(String key) {
-    // TODO: implement keyRemoved
-    throw UnimplementedError();
-  }
+  List<String> fieldsChanged() => throw UnimplementedError();
+
+  @override
+  List<String> fieldsRemoved() => throw UnimplementedError();
+
+  @override
+  Map<String, UpdateDifference<CommonLanguage>> differences() =>
+      throw UnimplementedError();
 }
-
 
 ///
 class CommonCreate extends CreateData<CommonLanguage> {
   ///
   CommonCreate(this._data);
 
-  final Map<String, dynamic> _data;
+  final JsonMap _data;
 
   @override
-  Map<String, dynamic> get data => _data;
+  JsonMap toMap() => _data;
+
+  @override
+  String get id => throw UnimplementedError();
 }
 
 ///
@@ -141,7 +140,6 @@ class CommonAccess extends Access<CommonLanguage> {
   CommonAccess(
       {required AccessType type,
       required String collection,
-      String? identifier,
       CommonQuery? query,
       CommonCreate? create,
       UpdateData<CommonLanguage>? update,
@@ -149,7 +147,6 @@ class CommonAccess extends Access<CommonLanguage> {
       : super(
             type: type,
             collection: collection,
-            identifier: identifier,
             settings: settings,
             query: query,
             create: create,

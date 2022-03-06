@@ -1,14 +1,10 @@
-
-
+import 'package:style_query/style_query.dart';
 
 ///
 abstract class Storage {
+  ///
+  Future<void> create(JsonMap object);
 
   ///
-  Future<void> create();
-
-  ///
-  Future<void> read();
-
-
+  JsonMap read(String id);
 }

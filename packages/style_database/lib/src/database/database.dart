@@ -15,8 +15,6 @@
  *
  */
 
-import 'dart:math';
-
 import 'package:style_query/style_query.dart';
 import 'package:style_random/style_random.dart';
 
@@ -43,9 +41,8 @@ class Database {
   ///
   void create(CommonAccess access) {
     collections[access.collection] ??
-        Collection<MapDbObject>(access.collection);
-    collections[access.collection]!
-        .add(MapDbObject(access.create!.data, idGenerator.generateString()));
+        Collection(access.collection, idGenerator);
+    collections[access.collection]!.add(access.create!.toMap());
   }
 
   ///
@@ -55,7 +52,7 @@ class Database {
     bool unique = false,
     bool ascending = true,
   }) {
-    collections[collection] ??= Collection<MapDbObject>(collection);
+    collections[collection] ??= Collection(collection, idGenerator);
     collections[collection]!.createIndexes(field);
   }
 }

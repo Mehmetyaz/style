@@ -119,17 +119,17 @@ class _MyServer extends StatelessComponent {
   @override
   Component build(BuildContext context) {
     return Server(
-        dataAccess:
-            DataAccess(SimpleDataAccess("./data/")),
+        dataAccess: DataAccess(SimpleDataAccess("./data/")),
         children: [
-          Route("normal", handleUnknownAsRoot: true, root: DefaultEndpoint()),
-          Route("any", handleUnknownAsRoot: true, root: AnyEndpoint()),
-          Route("body", handleUnknownAsRoot: true, root: BodyEndpoint()),
-          Route("access", handleUnknownAsRoot: true, root: AccessEndpoint()),
-          Route("db", handleUnknownAsRoot: true, root: DbResEndpoint()),
-          Route("message", handleUnknownAsRoot: true, root: MessageEndpoint()),
-          Route("not_preferred",
-              handleUnknownAsRoot: true, root: NotPreferredAny()),
+          //Route("normal", handleUnknownAsRoot: true, root: DefaultEndpoint()),
+          // Route("any", handleUnknownAsRoot: true, root: AnyEndpoint()),
+          // Route("body", handleUnknownAsRoot: true, root: BodyEndpoint()),
+          // Route("access", handleUnknownAsRoot: true, root: AccessEndpoint()),
+          // Route("db", handleUnknownAsRoot: true, root: DbResEndpoint()),
+          // Route("message", handleUnknownAsRoot: true
+          // , root: MessageEndpoint()),
+          // Route("not_preferred",
+          //     handleUnknownAsRoot: true, root: NotPreferredAny()),
         ]);
   }
 }
@@ -146,123 +146,127 @@ class MyEndpoint extends Endpoint {
   }
 }
 
-class DefaultEndpoint extends Endpoint {
-  DefaultEndpoint() : super();
-
-  @override
-  FutureOr<Object> onCall(Request request) async {
-    if (request.path.next == "any") {
-      return "String";
-    } else if (request.path.next == "any_ftr") {
-      return Future.value("String");
-    } else if (request.path.next == "map") {
-      return {"map": true};
-    } else if (request.path.next == "body") {
-      return Body("body");
-    } else if (request.path.next == "body_ftr") {
-      return Future.value(Body("body"));
-    } else if (request.path.next == "message") {
-      return request.response(Body("message"));
-    } else if (request.path.next == "message_ftr") {
-      return Future.value(request.response(Body("message")));
-    } else if (request.path.next == "db_res") {
-      return DbResult<Map<String, dynamic>>(data: {"db_res": true});
-    } else if (request.path.next == "db_res_ftr") {
-      return Future.value(
-          DbResult<Map<String, dynamic>>(data: {"db_res": true}));
-    } else if (request.path.next == "access") {
-      return Read(request: request, collection: "greeters", identifier: "veli");
-    } else if (request.path.next == "access_ftr") {
-      return Future.value(
-          Read(request: request, collection: "greeters", identifier: "veli"));
-    }
-    return "${request.path.next}";
-  }
-}
-
-class AnyEndpoint extends Endpoint {
-  AnyEndpoint() : super();
-
-  @override
-  EndpointPreferredType? get preferredType =>
-      EndpointPreferredType.anyEncodable;
-
-  @override
-  FutureOr<Object> onCall(Request request) {
-    return "any";
-  }
-}
-
-/// For optimization test
-class NotPreferredAny extends Endpoint {
-  NotPreferredAny() : super();
-
-  @override
-  FutureOr<Object> onCall(Request request) {
-    return "any";
-  }
-}
-
-class BodyEndpoint extends Endpoint {
-  BodyEndpoint() : super();
-
-  @override
-  EndpointPreferredType? get preferredType => EndpointPreferredType.body;
-
-  @override
-  FutureOr<Object> onCall(Request request) {
-    if (request.path.next == "future") {
-      return Future.value(Body("body"));
-    }
-    return Body("body");
-  }
-}
-
-class AccessEndpoint extends Endpoint {
-  AccessEndpoint() : super();
-
-  @override
-  EndpointPreferredType? get preferredType => EndpointPreferredType.accessEvent;
-
-  @override
-  FutureOr<Object> onCall(Request request) {
-    if (request.path.next == "future") {
-      return Future.value(Read(collection: "greeters", identifier: "veli"));
-    }
-
-
-    return (Read(collection: "greeters", identifier: "veli"));
-  }
-}
-
-class DbResEndpoint extends Endpoint {
-  DbResEndpoint() : super();
-
-  @override
-  EndpointPreferredType? get preferredType => EndpointPreferredType.dbResult;
-
-  @override
-  FutureOr<Object> onCall(Request request) async {
-    if (request.path.next == "future") {
-      return DataAccess.of(context).read(
-          Read(request: request, collection: "greeters", identifier: "veli"));
-    }
-    return await DataAccess.of(context).read(
-        Read(request: request, collection: "greeters", identifier: "veli"));
-  }
-}
-
-class MessageEndpoint extends Endpoint {
-  MessageEndpoint() : super();
-
-  @override
-  EndpointPreferredType? get preferredType => EndpointPreferredType.response;
-
-  @override
-  FutureOr<Object> onCall(Request request) async {
-    if (request.path.next == "future") {
-      return request.response(Body("message"));
-    }
-    return await request.response(Body("message"));
-  }
-}
+// class DefaultEndpoint extends Endpoint {
+//   DefaultEndpoint() : super();
+//
+//   @override
+//   FutureOr<Object> onCall(Request request) async {
+//     if (request.path.next == "any") {
+//       return "String";
+//     } else if (request.path.next == "any_ftr") {
+//       return Future.value("String");
+//     } else if (request.path.next == "map") {
+//       return {"map": true};
+//     } else if (request.path.next == "body") {
+//       return Body("body");
+//     } else if (request.path.next == "body_ftr") {
+//       return Future.value(Body("body"));
+//     } else if (request.path.next == "message") {
+//       return request.response(Body("message"));
+//     } else if (request.path.next == "message_ftr") {
+//       return Future.value(request.response(Body("message")));
+//     } else if (request.path.next == "db_res") {
+//       return DbResult<Map<String, dynamic>>(data: {"db_res": true});
+//     } else if (request.path.next == "db_res_ftr") {
+//       return Future.value(
+//           DbResult<Map<String, dynamic>>(data: {"db_res": true}));
+//     } else if (request.path.next == "access") {
+//       return Read(request: request, collection
+//       : "greeters", identifier: "veli");
+//     } else if (request.path.next == "access_ftr") {
+//       return Future.value(
+//           Read(request: request, collection: "greeters
+//           ", identifier: "veli"));
+//     }
+//     return "${request.path.next}";
+//   }
+// }
+//
+// class AnyEndpoint extends Endpoint {
+//   AnyEndpoint() : super();
+//
+//   @override
+//   EndpointPreferredType? get preferredType =>
+//       EndpointPreferredType.anyEncodable;
+//
+//   @override
+//   FutureOr<Object> onCall(Request request) {
+//     return "any";
+//   }
+// }
+//
+// /// For optimization test
+// class NotPreferredAny extends Endpoint {
+//   NotPreferredAny() : super();
+//
+//   @override
+//   FutureOr<Object> onCall(Request request) {
+//     return "any";
+//   }
+// }
+//
+// class BodyEndpoint extends Endpoint {
+//   BodyEndpoint() : super();
+//
+//   @override
+//   EndpointPreferredType? get preferredType => EndpointPreferredType.body;
+//
+//   @override
+//   FutureOr<Object> onCall(Request request) {
+//     if (request.path.next == "future") {
+//       return Future.value(Body("body"));
+//     }
+//     return Body("body");
+//   }
+// }
+//
+// class AccessEndpoint extends Endpoint {
+//   AccessEndpoint() : super();
+//
+//   @override
+//   EndpointPreferredType? get preferredType =>
+//   EndpointPreferredType.accessEvent;
+//
+//   @override
+//   FutureOr<Object> onCall(Request request) {
+//     if (request.path.next == "future") {
+//       return Future.value(Read(collection: "greeters", identifier: "veli"));
+//     }
+//
+//
+//     return (Read(collection: "greeters", identifier: "veli"));
+//   }
+// }
+//
+// class DbResEndpoint extends Endpoint {
+//   DbResEndpoint() : super();
+//
+//   @override
+//   EndpointPreferredType? get preferredType => EndpointPreferredType.dbResult;
+//
+//   @override
+//   FutureOr<Object> onCall(Request request) async {
+//     if (request.path.next == "future") {
+//       return DataAccess.of(context).read(
+//           Read(request: request, collection:
+//           "greeters", identifier: "veli"));
+//     }
+//     return await DataAccess.of(context).read(
+//         Read(request: request, collection: "greeters", identifier: "veli"));
+//   }
+// }
+//
+// class MessageEndpoint extends Endpoint {
+//   MessageEndpoint() : super();
+//
+//   @override
+//   EndpointPreferredType? get preferredType => EndpointPreferredType.response;
+//
+//   @override
+//   FutureOr<Object> onCall(Request request) async {
+//     if (request.path.next == "future") {
+//       return request.response(Body("message"));
+//     }
+//     return await request.response(Body("message"));
+//   }
+// }

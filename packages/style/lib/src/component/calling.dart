@@ -16,7 +16,7 @@
  *
  */
 
-part of '../style_base.dart';
+part of style_dart;
 
 /// İşlem Çağrısı
 ///
@@ -39,10 +39,9 @@ abstract class Calling {
   FutureOr<Message> onCall(Request request);
 
   ///
-  FutureOr<Message> call(Request request) async {
+  FutureOr<Message> call(Request request) {
     try {
-      var r = await onCall(request);
-      return r;
+      return onCall(request);
     } on Exception catch (e, s) {
       return _binding.exceptionHandler
           .getBinding(e)

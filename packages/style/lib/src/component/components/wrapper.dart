@@ -16,7 +16,7 @@
  *
  */
 
-part of '../../style_base.dart';
+part of style_dart;
 
 ///
 class ExceptionWrapper<T extends Exception> extends StatelessComponent {
@@ -45,11 +45,11 @@ class ExceptionWrapper<T extends Exception> extends StatelessComponent {
   Component build(BuildContext context) => child;
 
   @override
-  StatelessBinding createBinding() => _ExceptionWrapperBinding(this);
+  StatelessBinding createBinding() => ExceptionWrapperBinding(this);
 }
 
-class _ExceptionWrapperBinding extends StatelessBinding {
-  _ExceptionWrapperBinding(ExceptionWrapper component) : super(component);
+class ExceptionWrapperBinding extends StatelessBinding {
+  ExceptionWrapperBinding(ExceptionWrapper component) : super(component);
 
   @override
   void buildBinding() {
@@ -85,7 +85,7 @@ class _ExceptionWrapperBinding extends StatelessBinding {
         throw Exception('[exception] tree must ends with Endpoint'
             '\nAnd must not have a new route\n'
             "Ensure exception/exception's any child not [Route, RouteTo, GateWay]\n"
-            'WHERE: $_errorWhere');
+            'WHERE: $where');
       }
     }
 

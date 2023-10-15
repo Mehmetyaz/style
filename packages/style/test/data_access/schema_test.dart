@@ -88,16 +88,16 @@ class _MyServer extends StatelessComponent {
 
   @override
   Component build(BuildContext context) => Server(
-        dataAccess: DataAccess(SimpleCacheDataAccess(),
-            defaultPermission: false,
-            collections: [
-              DbCollection('users',
-                  identifier: 'id',
-                  createSchema: userCreateSchema,
-                  resourceSchemaOnUpdate: onUpdateResource,
-                  updateSchema: userUpdateSchema),
-            ]),
-        children: [RestAccessPoint('api')]);
+        // dataAccess: DataAccess(SimpleCacheDataAccess(),
+        //     defaultPermission: false,
+        //     collections: [
+        //       DbCollection('users',
+        //           identifier: 'id',
+        //           createSchema: userCreateSchema,
+        //           resourceSchemaOnUpdate: onUpdateResource,
+        //           updateSchema: userUpdateSchema),
+        //     ]),
+        children: []);
 }
 
 ///

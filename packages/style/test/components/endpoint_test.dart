@@ -116,7 +116,7 @@ class _MyServer extends StatelessComponent {
 
   @override
   Component build(BuildContext context) =>
-      Server(dataAccess: DataAccess(SimpleDataAccess('./data/')), children: [
+      Server(/*dataAccess: DataAccess(SimpleDataAccess('./data/')),*/ children: [
         //Route("normal", handleUnknownAsRoot: true, root: DefaultEndpoint()),
         // Route("any", handleUnknownAsRoot: true, root: AnyEndpoint()),
         // Route("body", handleUnknownAsRoot: true, root: BodyEndpoint()),

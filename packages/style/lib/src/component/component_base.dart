@@ -16,7 +16,7 @@
  *
  */
 
-part of '../style_base.dart';
+part of style_dart;
 
 /// Ana Mimarideki her bir parça
 ///
@@ -228,42 +228,50 @@ abstract class CallingBinding extends Binding {
 ///
 abstract class SingleChildBindingComponent extends StatelessComponent {
   ///
-  SingleChildBindingComponent(this.child);
+  SingleChildBindingComponent({required this.child, super.key});
 
   ///
   final Component child;
+
+  ///
+  @override
+  Component build(BuildContext context) => child;
+
+  ///
+  @override
+  SingleChildBinding createBinding() => createCustomBinding();
 
   ///
   SingleChildBinding createCustomBinding();
 }
 
 ///
-class SingleChildBinding extends Binding {
+class SingleChildBinding extends StatelessBinding {
   ///
-  SingleChildBinding(Component component) : super(component);
+  SingleChildBinding(SingleChildBindingComponent component) : super(component);
 
   @override
-  SingleChildCallingComponent get component =>
-      super.component as SingleChildCallingComponent;
+  SingleChildBindingComponent get component =>
+      super.component as SingleChildBindingComponent;
 
   late Binding _child;
 
   ///
+  @override
   Binding get child => _child;
 
   @override
   void buildBinding() {
     _child = component.child.createBinding();
-
     _child.attachToParent(this);
     _child.buildBinding();
   }
 
-  @override
-  TreeVisitor<Calling> visitCallingChildren(TreeVisitor<Calling> visitor) {
-    // TODO: implement visitCallingChildren
-    throw UnimplementedError();
-  }
+  // @override
+  // TreeVisitor<Calling> visitCallingChildren(TreeVisitor<Calling> visitor) {
+  //   // TODO: implement visitCallingChildren
+  //   throw UnimplementedError();
+  // }
 }
 
 ///

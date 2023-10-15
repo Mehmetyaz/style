@@ -84,7 +84,7 @@ class _MyServer extends StatelessComponent {
 
   @override
   Component build(BuildContext context) => Server(
-        dataAccess: DataAccess(SimpleCacheDataAccess(),
-            defaultPermission: false, collections: []),
-        children: [RestAccessPoint('api')]);
+        /*dataAccess: DataAccess(SimpleCacheDataAccess(),
+            defaultPermission: false, collections: []),*/
+        children: []);
 }

@@ -41,7 +41,7 @@ class _MyServer extends StatelessComponent {
 
   @override
   Component build(BuildContext context) => Server(
-      dataAccess: DataAccess<CommonLanguage>(SimpleCacheDataAccess()),
+      //dataAccess: DataAccess(SimpleCacheDataAccess()),
       children: [Route('test', root: AccessEndp())]);
 }
 
@@ -50,11 +50,10 @@ class AccessEndp extends Endpoint {
   AccessEndp() : super();
 
   @override
-  FutureOr<Object> onCall(Request request) => CommonAccess(
+  FutureOr<Object> onCall(Request request) => Access(
       type: AccessType.create,
       collection: 'users',
-      create: CommonCreate(
-          (request.body as JsonBody).data as Map<String, dynamic>));
+      create: ((request.body as JsonBody).data as Map<String, dynamic>));
 /*AccessEvent<CommonLanguage>(
       access: CommonAccess(
           type: AccessType.create,

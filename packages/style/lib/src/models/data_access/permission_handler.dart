@@ -16,7 +16,7 @@
  *
  */
 
-part of '../../style_base.dart';
+part of style_dart;
 
 ///
 typedef PermissionCheckerCallback = FutureOr<bool> Function(AccessEvent event);
@@ -35,7 +35,7 @@ class PermissionHandler {
       return true;
     }
     var validator = StyleValidator(await create);
-    var valid = validator.validate(a.access.create!.toMap());
+    var valid = validator.validate(a.access.create!);
     if (!valid) {
       a.errors = validator.errorObjects.map((e) => e.toMapEntry()).toList();
     }
@@ -49,7 +49,7 @@ class PermissionHandler {
     }
 
     var validator = StyleValidator(await update);
-    var valid = validator.validate(a.access.update!.toMap());
+    var valid = validator.validate(a.access.update!);
     if (!valid) {
       a.errors = validator.errorObjects.map((e) => e.toMapEntry()).toList();
     }

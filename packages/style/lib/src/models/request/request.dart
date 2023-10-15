@@ -16,7 +16,7 @@
  *
  */
 
-part of '../../style_base.dart';
+part of style_dart;
 
 ///
 //ignore: prefer_void_to_null
@@ -103,7 +103,7 @@ abstract class Body<T> {
 ///
 class JsonBody extends Body<dynamic> {
   ///
-  JsonBody(Object data)
+  JsonBody(dynamic data)
       : assert(data is List || data is Map<String, dynamic>),
         super._(data);
 
@@ -471,16 +471,8 @@ class HttpStyleRequest extends Request {
   final HttpRequest baseRequest;
 
   ///
-  static Future<HttpStyleRequest> fromRequest(
-      {required HttpRequest req,
-      required dynamic body,
-      required BuildContext context}) async {
-    var q = req.uri.queryParameters;
-    var t = req.headers[HttpHeaders.authorizationHeader]?.first ?? q['token'];
-    AccessToken? token;
-    if (t != null && context.hasService<Authorization>()) {
-      token = await Authorization.of(context).decryptToken(t);
-    }
+  factory HttpStyleRequest.fromRequest(
+      {required HttpRequest req, required dynamic body}) {
     return HttpStyleRequest(
         baseRequest: req,
         contentType: req.headers.contentType,
@@ -489,9 +481,6 @@ class HttpStyleRequest extends Request {
             requestTime: DateTime.now(),
             cause: Cause.clientRequest,
             agent: Agent.http,
-            accessToken: token,
-            // TODO: Look cookies for token
-            // createContext: context,
             pathController: PathController.fromHttpRequest(req)),
         body: body as Body?);
   }

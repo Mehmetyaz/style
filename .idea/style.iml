@@ -139,6 +139,18 @@
       <excludeFolder url="file://$MODULE_DIR$/packages/object/style_object_builder/build" />
       <excludeFolder url="file://$MODULE_DIR$/packages/object/style_object_builder/.dart_tool" />
       <excludeFolder url="file://$MODULE_DIR$/packages/object/style_object_builder/.pub" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/object/style_object_native/.pub" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/object/style_object_native/.dart_tool" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/object/style_object_native/build" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/object/style_object_constants/.dart_tool" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/object/style_object_constants/build" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/object/style_object_constants/.pub" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/object/style_object_flexible/build" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/object/style_object_flexible/.pub" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/object/style_object_flexible/.dart_tool" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/style_object/.pub" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/style_object/.dart_tool" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/style_object/build" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

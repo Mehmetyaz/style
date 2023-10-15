@@ -16,7 +16,7 @@
  *
  */
 
-part of '../../style_base.dart';
+part of style_dart;
 
 /// Base component for server
 ///
@@ -102,29 +102,31 @@ class ServiceState extends State<Server> {
     ]);
 
     if (component.httpService != null) {
-      result = ServiceWrapper<HttpService>(
-          service: component.httpService!, child: result);
+      result = ModuleBindComponent<HttpService>(
+          delegate: component.httpService!, child: result);
     }
 
-    result = ServiceWrapper<Logger>(service: component.logger, child: result);
+    result =
+        ModuleBindComponent<Logger>(delegate: component.logger, child: result);
+
     if (component.cryptoService != null) {
-      result = ServiceWrapper<Crypto>(
-          service: component.cryptoService!, child: result);
+      result = ModuleBindComponent<Crypto>(
+          delegate: component.cryptoService!, child: result);
     }
 
     if (component.socketService != null) {
-      result = ServiceWrapper<WebSocketService>(
-          service: component.socketService!, child: result);
+      result = ModuleBindComponent<WebSocketService>(
+          delegate: component.socketService!, child: result);
     }
 
     if (component.dataAccess != null) {
-      result = ServiceWrapper<DataAccess>(
-          service: component.dataAccess!, child: result);
+      result = ModuleBindComponent<DataAccess>(
+          delegate: component.dataAccess!, child: result);
     }
 
     if (component.authorization != null) {
-      result = ServiceWrapper<Authorization>(
-          service: component.authorization!, child: result);
+      result = ModuleBindComponent<Authorization>(
+          delegate: component.authorization!, child: result);
     }
 
     return ServiceCallingComponent(
@@ -157,7 +159,6 @@ class ServiceCallingComponent extends SingleChildCallingComponent {
 
   ///
   final bool createStateOnCall;
-
 
   /// type belirtilmezse bir üsttekini getirir
   /// type belirtilirse ve bir üstteki o type değilse
@@ -305,6 +306,7 @@ mixin ServiceOwnerMixin on Binding {
   Future<void> callCronJob(String route, DateTime time) async {
     var res =
         await findCalling.calling(CronJobRequest(time: time, path: route));
-    Logger.of(this).info(this, 'cron_job_executed', payload: res.body?.data as Map<String,dynamic>?);
+    Logger.of(this).info(this, 'cron_job_executed',
+        payload: res.body?.data as Map<String, dynamic>?);
   }
 }

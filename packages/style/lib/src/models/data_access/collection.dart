@@ -15,7 +15,7 @@
  * limitations under the License.
  *
  */
-part of '../../style_base.dart';
+part of style_dart;
 
 ///
 class DbCollection {

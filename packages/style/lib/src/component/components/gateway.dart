@@ -16,7 +16,7 @@
  *
  */
 
-part of '../../style_base.dart';
+part of style_dart;
 
 ///
 class Gateway extends MultiChildCallingComponent {
@@ -48,7 +48,7 @@ class GatewayBinding extends MultiChildCallingBinding {
 
     if (route == null && service == null) {
       throw UnsupportedError('Each Gateway must ancestor of Service or Route'
-          '\nwhere:$_errorWhere');
+          '\nwhere:$where');
     }
   }
 
@@ -70,7 +70,7 @@ class GatewayBinding extends MultiChildCallingBinding {
       if (childCalling.result == null) {
         throw UnsupportedError('Each Gateway child (or Service child) must have'
             '[Route] in the tree.'
-            '\nwhere: child ${child.component} in $_errorWhere');
+            '\nwhere: child ${child.component} in $where');
       }
       if (childCalling.result is GatewayCalling) {
         var segments = ((childCalling.result! as GatewayCalling).binding
@@ -83,7 +83,7 @@ class GatewayBinding extends MultiChildCallingBinding {
             if (arg != null) {
               throw Exception('Gateways allow only once argument segment.'
                   '\nbut found $arg and'
-                  ' $seg\nWHERE: $_errorWhere');
+                  ' $seg\nWHERE: $where');
             } else {
               arg = seg.key;
             }
@@ -98,7 +98,7 @@ class GatewayBinding extends MultiChildCallingBinding {
           if (arg != null) {
             throw Exception('Gateways allow only once argument segment.'
                 ' \nbut found $arg and'
-                ' $seg\nWHERE: $_errorWhere');
+                ' $seg\nWHERE: $where');
           } else {
             arg = seg;
           }
@@ -106,10 +106,7 @@ class GatewayBinding extends MultiChildCallingBinding {
         callings[seg] = child;
       }
     }
-    //
-    // print(
-    //     "${_callings.map((key, value) => MapEntry(key, value.))}");
-    calling.childrenBinding = callings;
+     calling.childrenBinding = callings;
   }
 }
 

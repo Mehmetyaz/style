@@ -16,7 +16,7 @@
  *
  */
 
-part of '../../style_base.dart';
+part of style_dart;
 
 /// It assigns the service entered as the default service (unless re-wrapped)
 /// in all contexts under the context in which it was created.
@@ -30,73 +30,85 @@ part of '../../style_base.dart';
 ///   )
 /// ````
 ///
-class ServiceWrapper<B extends BaseService> extends StatelessComponent {
-  /// Annotate with service type
-  ServiceWrapper({required this.service, required this.child});
-
-  /// Available Services:
-  /// - DataAccess
-  /// - Logger
-  /// - WebSocketService
-  /// - HttpService
-  /// - Crypto
-  final B service;
-
-  ///
-  final Component child;
-
-  @override
-  StatelessBinding createBinding() => ServiceWrapperBinding<B>(this);
-
-  @override
-  Component build(BuildContext context) => child;
-}
+// class ServiceWrapper<B extends BaseService> extends StatelessComponent {
+//   /// Annotate with service type
+//   ServiceWrapper({required this.service, required this.child});
+//
+//   /// Available Services:
+//   /// - DataAccess
+//   /// - Logger
+//   /// - WebSocketService
+//   /// - HttpService
+//   /// - Crypto
+//   final B service;
+//
+//   ///
+//   final Component child;
+//
+//   @override
+//   StatelessBinding createBinding() => ServiceWrapperBinding<B>(this);
+//
+//   @override
+//   Component build(BuildContext context) => child;
+// }
 
 ///
-class ServiceWrapperBinding<B extends BaseService> extends StatelessBinding {
-  ///
-  ServiceWrapperBinding(ServiceWrapper<B> component) : super(component);
+// class ServiceWrapperBinding<B extends Delegate> extends StatelessBinding {
+//   ///
+//   ServiceWrapperBinding(ServiceWrapper<B> component) : super(component);
+//
+//   @override
+//   ServiceWrapper<B> get component => super.component as ServiceWrapper<B>;
+//
+//   @override
+//   void buildBinding() {
+//     component.service.context = this;
+//     super.buildBinding();
+//   }
+//
+//   @override
+//   void attachToParent(Binding parent) {
+//     super.attachToParent(parent);
+//     _setServiceToThisAndParents<B>(component.service);
+//   }
+//
+//   @override
+//   TreeVisitor<Calling> visitCallingChildren(TreeVisitor<Calling> visitor) =>
+//       child!.visitCallingChildren(visitor);
+// }
 
-  @override
-  ServiceWrapper<B> get component => super.component as ServiceWrapper<B>;
-
-  @override
-  void buildBinding() {
-    component.service.context = this;
-    super.buildBinding();
-  }
-
-  @override
-  void attachToParent(Binding parent) {
-    super.attachToParent(parent);
-    _setServiceToThisAndParents<B>(component.service);
-  }
-
-  @override
-  TreeVisitor<Calling> visitCallingChildren(TreeVisitor<Calling> visitor) => child!.visitCallingChildren(visitor);
-}
-
-abstract class BaseService {
-  BaseService();
-
-  /// The context in which the service attached
-  late final BuildContext context;
-
-  /// Service is initialized
-  bool initialized = false;
-
-  /// Init Service
-  FutureOr<bool> init();
-
-  FutureOr<void> _init() async {
-    initialized = await init();
-    _initializeCompleter.complete(initialized);
-  }
-
-  late final Completer<bool> _initializeCompleter = Completer<bool>();
-
-  /// Wait service is initialized.
-  ///
-  /// if service initializing is success returns true.
-  Future<bool> ensureInitialize() async => await _initializeCompleter.future;
-}
+// abstract class BaseService {
+//   BaseService();
+//
+//   /// The context in which the service attached
+//   late final BuildContext context;
+//
+//   /// Service is initialized
+//   bool initialized = false;
+//
+//   /// Init Service
+//   FutureOr<bool> init();
+//
+//   FutureOr<void> _init() async {
+//     var i = init();
+//     if (i is Future) {
+//       initialized = await init();
+//       _initializeCompleter.complete(initialized);
+//     } else {
+//       initialized = i;
+//       _initializeCompleter.complete(initialized);
+//     }
+//   }
+//
+//   late final Completer<bool> _initializeCompleter = Completer<bool>();
+//
+//   /// Wait service is initialized.
+//   ///
+//   /// if service initializing is success returns true.
+//   FutureOr<bool> ensureInitialize() {
+//     if (_initializeCompleter.isCompleted) {
+//       return initialized;
+//     }
+//     return _initializeCompleter.future;
+//   }
+// }

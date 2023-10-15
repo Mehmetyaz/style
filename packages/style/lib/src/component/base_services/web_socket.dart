@@ -16,10 +16,10 @@
  *
  */
 
-part of '../../style_base.dart';
+part of style_dart;
 
 ///
-abstract class WebSocketService extends BaseService {
+abstract class WebSocketService extends ModuleDelegate {
   ///
   WebSocketService(
       {RandomGenerator? connectionIdGenerator,
@@ -333,7 +333,6 @@ class WebSocketConnection {
       _incomingController.sink.add(await webSocketService._messageTransformer
           .convertIncoming(event as Object, this));
     });
-    //TODO:
   }
 
   ///

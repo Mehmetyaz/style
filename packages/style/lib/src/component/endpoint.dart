@@ -16,7 +16,7 @@
  *
  */
 
-part of '../style_base.dart';
+part of style_dart;
 
 ///
 abstract class EndpointCalling extends Calling {
@@ -141,9 +141,13 @@ class _BodyEndpointCalling extends EndpointCalling {
   _BodyEndpointCalling(EndpointCallingBinding endpoint) : super(endpoint);
 
   @override
-  FutureOr<Message> onCall(Request request) async {
-    var res = (await _endpointOnCall(request)) as Body;
-    return request.response(res);
+  FutureOr<Message> onCall(Request request) {
+    var res = _endpointOnCall(request);
+    if (res is Future) {
+      return res.then((value) => request.response(value as Body));
+    } else {
+      return request.response(res as Body);
+    }
   }
 }
 
@@ -151,8 +155,8 @@ class _MessageEndpointCalling extends EndpointCalling {
   _MessageEndpointCalling(EndpointCallingBinding endpoint) : super(endpoint);
 
   @override
-  FutureOr<Message> onCall(Request request) async =>
-      (await _endpointOnCall(request)) as Message;
+  FutureOr<Message> onCall(Request request) =>
+      _endpointOnCall(request) as FutureOr<Message>;
 }
 
 class _AnyEncodableEndpointCalling extends EndpointCalling {
@@ -160,9 +164,13 @@ class _AnyEncodableEndpointCalling extends EndpointCalling {
       : super(endpoint);
 
   @override
-  FutureOr<Message> onCall(Request request) async {
-    var res = (await _endpointOnCall(request));
-    return request.response(Body(res));
+  FutureOr<Message> onCall(Request request) {
+    var res = _endpointOnCall(request);
+    if (res is Future) {
+      return res.then((value) => request.response(Body(value)));
+    } else {
+      return request.response(Body(res));
+    }
   }
 }
 
@@ -471,7 +479,6 @@ abstract class LastModifiedEndpoint extends Endpoint {
   @override
   FutureOr<Object> onCall(Request request) =>
       onRequest(request as ValidationRequest<DateTime>);
-
 }
 
 ///

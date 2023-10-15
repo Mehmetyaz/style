@@ -16,10 +16,10 @@
  *
  */
 
-part of '../../style_base.dart';
+part of style_dart;
 
 /// Log everything
-abstract class Logger extends BaseService {
+abstract class Logger extends ModuleDelegate {
   ///
   Logger({RandomGenerator? logIdGenerator})
       : loggerIdGenerator = logIdGenerator ?? RandomGenerator('[*#]/l(30)');
@@ -34,44 +34,50 @@ abstract class Logger extends BaseService {
   void log(LogMessage logMessage);
 
   void _log(LogLevel level, BuildContext context, String name,
-      {Map<String, dynamic>? payload, String? title, String? customId}) => log(LogMessage(
-        loggerContext: context,
-        customId: customId,
-        payload: payload,
-        name: name,
-        title: title,
-        level: level));
+          {Map<String, dynamic>? payload, String? title, String? customId}) =>
+      log(LogMessage(
+          loggerContext: context,
+          customId: customId,
+          payload: payload,
+          typeName: name,
+          title: title,
+          level: level));
 
   ///
   void verbose(BuildContext context, String name,
-      {Map<String, dynamic>? payload, String? customId, String? title}) => _log(LogLevel.verbose, context, name,
-        title: title, payload: payload, customId: customId);
+          {Map<String, dynamic>? payload, String? customId, String? title}) =>
+      _log(LogLevel.verbose, context, name,
+          title: title, payload: payload, customId: customId);
 
   ///
   void info(BuildContext context, String name,
-      {Map<String, dynamic>? payload, String? customId, String? title}) => _log(LogLevel.info, context, name,
-        payload: payload, customId: customId, title: title);
+          {Map<String, dynamic>? payload, String? customId, String? title}) =>
+      _log(LogLevel.info, context, name,
+          payload: payload, customId: customId, title: title);
 
   ///
   void error(BuildContext context, String name,
-      {Map<String, dynamic>? payload, String? customId, String? title}) => _log(LogLevel.error, context, name,
-        payload: payload, customId: customId, title: title);
+          {Map<String, dynamic>? payload, String? customId, String? title}) =>
+      _log(LogLevel.error, context, name,
+          payload: payload, customId: customId, title: title);
 
   ///
   void warn(BuildContext context, String name,
-      {Map<String, dynamic>? payload, String? customId, String? title}) => _log(
-      LogLevel.warn,
-      context,
-      name,
-      title: title,
-      payload: payload,
-      customId: customId,
-    );
+          {Map<String, dynamic>? payload, String? customId, String? title}) =>
+      _log(
+        LogLevel.warn,
+        context,
+        name,
+        title: title,
+        payload: payload,
+        customId: customId,
+      );
 
   ///
   void important(BuildContext context, String name,
-      {Map<String, dynamic>? payload, String? customId, String? title}) => _log(LogLevel.important, context, name,
-        title: title, payload: payload, customId: customId);
+          {Map<String, dynamic>? payload, String? customId, String? title}) =>
+      _log(LogLevel.important, context, name,
+          title: title, payload: payload, customId: customId);
 }
 
 ///
@@ -81,19 +87,33 @@ class DefaultLogger extends Logger {
       : super(logIdGenerator: logIdGenerator);
 
   @override
-  FutureOr<bool> init([bool inInterface = true]) async => true;
+  FutureOr<bool> init([bool inInterface = true]) => true;
 
   @override
   void log(LogMessage logMessage) {
-    print(logMessage.name);
+    print(JsonEncoder.withIndent('  ').convert({
+      'id': logMessage.id,
+      'time': logMessage.time.toIso8601String(),
+      'level': logMessage.level.index,
+      'type_name': logMessage.typeName,
+      'title': logMessage.title,
+      'payload': logMessage.payload,
+      if (logMessage.level.index > 1)
+        'where': (logMessage.loggerContext as Binding)
+            .where((e) => e is! ExceptionWrapper),
+      if (logMessage.level.index > 3)
+        'stack_trace': StackTrace.current.toString(),
+    }));
   }
 }
 
 /// eg log
-/// server_start
-/// Server Started : Server started with 192.168.1.1
-/// 14.00.21 16:18
-/// {
+///
+/// level: important
+/// type_name: server_start
+/// title: Server Started : Server started with 192.168.1.1
+/// time: 14.00.21 16:18
+/// payload: {
 ///   agent: x,
 ///   cause: y,
 ///   token: a,
@@ -107,7 +127,7 @@ class LogMessage {
   LogMessage(
       {String? customId,
       required this.loggerContext,
-      required this.name,
+      required this.typeName,
       required this.level,
       this.payload,
       this.title})
@@ -122,7 +142,7 @@ class LogMessage {
   DateTime time;
 
   ///
-  String id, name;
+  String id, typeName;
 
   ///
   String? title;

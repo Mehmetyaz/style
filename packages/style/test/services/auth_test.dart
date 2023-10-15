@@ -62,7 +62,7 @@ class AuthTestServer extends StatelessComponent {
   @override
   Component build(BuildContext context) => Server(
           // authorization: SimpleAuthorization(),
-          dataAccess: DataAccess(SimpleCacheDataAccess()),
+          //dataAccess: DataAccess(SimpleCacheDataAccess()),
           cryptoService: MyEncHandler(
               tokenKey1: '11111111111111111111111111111111',
               tokenKey2: '11111111111111111111111111111111',

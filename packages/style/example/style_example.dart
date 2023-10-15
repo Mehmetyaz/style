@@ -35,8 +35,15 @@ void main(arg) async {
 class ExampleServer extends StatelessComponent {
   @override
   Component build(BuildContext context) {
+
+
+    Authorization();
+
+
+
+
     return Server(
-        httpService: DefaultHttpServiceHandler(host: 'localhost', port: 8080),
+        httpService: JsonHttpService(host: 'localhost', port: 8080),
         children: [
           Route('hello',
               root: HelloEnd('my_col'),
@@ -70,10 +77,12 @@ class HelloEnd extends Endpoint {
   final String xCollection;
 
   @override
-  FutureOr<Object> onCall(Request request) {
-    print('Hello Endp');
+  EndpointPreferredType? get preferredType =>
+      EndpointPreferredType.anyEncodable;
 
-    return 'hello';
+  @override
+  FutureOr<Object> onCall(Request request) {
+    return {'c': xCollection};
   }
 }
 
@@ -443,7 +452,7 @@ class MyServer extends StatelessComponent {
                   'type': request.contentType?.mimeType,
                   'body': (request.body?.data as Object?).runtimeType.toString()
                 }))),
-        RestAccessPoint('api'),
+        //RestAccessPoint('api'),
         RouteBase('doc',
             handleUnknownAsRoot: true,
             root: ContentDelivery('D:\\style\\packages\\style\\source\\web\\')),

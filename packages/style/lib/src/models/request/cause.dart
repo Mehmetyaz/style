@@ -16,7 +16,7 @@
  *
  */
 
-part of '../../style_base.dart';
+part of style_dart;
 
 /// Request [Cause].
 /// Indicates why this request is made.

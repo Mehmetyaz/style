@@ -16,7 +16,7 @@
  *
  */
 
-part of '../../style_base.dart';
+part of style_dart;
 
 /// [Request] agent.
 /// Example: The agent of all http/(s) requests received by the server is [Agent.http]

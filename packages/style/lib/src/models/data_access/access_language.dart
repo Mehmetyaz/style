@@ -16,23 +16,6 @@
  *
  */
 
-part of '../../style_base.dart';
-
-///
-abstract class LanguageDelegate<L extends AccessLanguage> {
-  ///
-  LanguageDelegate();
-
-  ///
-  CommonQuery toCommonQuery(Query<L> query);
-
-  ///
-  Query<L> fromCommonQuery(CommonQuery query);
-
-  ///
-  AccessEvent<L> buildAccess(AccessEvent<L> builder);
-}
-
 
 
 

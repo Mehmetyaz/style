@@ -16,14 +16,14 @@
  *
  */
 
-part of '../../../style_base.dart';
+part of style_dart;
 
 //TODO: Set New Task
 
 ///
-abstract class Authorization extends BaseService {
+abstract class Authorization extends ModuleDelegate {
   ///
-  Authorization({List<Confirmatory>? confirmatories})
+  Authorization({List<SecondaryConfirmatory>? confirmatories})
       : _confirmatories = (confirmatories ?? [])
             .asMap()
             .map((key, value) => MapEntry(value.key.key, value));
@@ -80,20 +80,21 @@ abstract class Authorization extends BaseService {
     }
 
     _confirmatories.forEach((key, value) {
-      value._attach(context);
+      value._attach(context, this);
     });
 
     return initService();
   }
 
   ///
-  final Map<String, Confirmatory> _confirmatories;
+  final Map<String, SecondaryConfirmatory> _confirmatories;
 
   ///
-  Confirmatory getConfirmatoryByKey(String key) => _confirmatories[key]!;
+  SecondaryConfirmatory getConfirmatoryByKey(String key) =>
+      _confirmatories[key]!;
 
   ///
-  T getConfirmatory<T extends Confirmatory>(ConfirmationType type) {
+  T getConfirmatory<T extends SecondaryConfirmatory>(ConfirmationType type) {
     var available = _confirmatories.values
         .whereType<T>()
         .where((element) => element.type == type);
@@ -111,32 +112,59 @@ abstract class Authorization extends BaseService {
   }
 }
 
-///
-// class SimpleAuthorization extends Authorization {
-//   @override
-//   FutureOr<bool> initService() {
-//     return true;
-//   }
-//
-//   @override
-//   FutureOr<UserCredential> login(dynamic authData) {
-//     // TODO: implement login
-//     throw UnimplementedError();
-//   }
-//
-//   @override
-//   FutureOr<bool> logout(dynamic authData) {
-//     // TODO: implement logout
-//     throw UnimplementedError();
-//   }
-//
-//   @override
-//   FutureOr<AccessToken> register
-//   (dynamic authData, UserCredential credentials) {
-//     // TODO: implement register
-//     throw UnimplementedError();
-//   }
-//
+class SimpleAuth extends Authorization {
+  @override
+  Component build(BuildContext context) {
+    // TODO: implement build
+    throw UnimplementedError();
+  }
+
+  @override
+  FutureOr<AccessToken> decryptToken(String token) {
+    // TODO: implement decryptToken
+    throw UnimplementedError();
+  }
+
+  @override
+  FutureOr<String> encryptToken(AccessToken token) {
+    // TODO: implement encryptToken
+    throw UnimplementedError();
+  }
+
+  @override
+  FutureOr<bool> initService() {
+    // TODO: implement initService
+    throw UnimplementedError();
+  }
+
+  @override
+  FutureOr login(authData) {
+    // TODO: implement login
+    throw UnimplementedError();
+  }
+
+  @override
+  FutureOr<void> logout(authData) {
+    // TODO: implement logout
+    throw UnimplementedError();
+  }
+
+  @override
+  FutureOr<AccessToken> register(authData, {credentials}) {
+    // TODO: implement register
+    throw UnimplementedError();
+  }
+
+  @override
+  FutureOr<void> verifyToken(AccessToken token) {
+    // TODO: implement verifyToken
+    throw UnimplementedError();
+  }
+}
+
+
+
+
 //   @override
 //   FutureOr<String> encryptToken(AccessToken token) async {
 //     var header = <String, dynamic>{"alg": "HS256", "typ": "JWT"};
@@ -178,31 +206,3 @@ abstract class Authorization extends BaseService {
 //     return AccessToken.fromMap(
 //         json.decode(utf8.decode(base64Url.decode(payloadText))));
 //   }
-//
-//   @override
-//   FutureOr<void> verifyToken(AccessToken token) {
-//     // TODO: implement verifyToken
-//     throw UnimplementedError();
-//   }
-//
-//   @override
-//   Component build() {
-//     // TODO: implement build
-//     throw UnimplementedError();
-//   }
-// }
-
-// ///
-// abstract class RegisterData {
-//   ///
-//   RegisterData({required this.method, required this.password});
-//
-//   ///
-//   SingInMethod method;
-//
-//   ///
-//   String password;
-//
-//   ///
-//   String? userLoginInput;
-// }

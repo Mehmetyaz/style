@@ -16,6 +16,9 @@
  *
  */
 
+
+library style_dart;
+
 import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
@@ -27,17 +30,20 @@ import 'package:json_schema2/json_schema2.dart';
 import 'package:meta/meta.dart';
 import 'package:queue/queue.dart' as q;
 import 'package:style_cron_job/style_cron_job.dart';
-import 'package:style_query/style_query.dart';
 import 'package:style_random/style_random.dart';
 
 import 'functions/uint8_merge.dart';
 import 'models/json_schema.dart';
 
+
+part 'component/base_services/communication/communication_models.dart';
+part 'component/base_services/communication/implementations.dart';
+part 'component/components/module.dart';
 part 'component/base_services/authorization/authorization.dart';
 part 'component/base_services/authorization/confirmation/confirmatories.dart';
 part 'component/base_services/authorization/confirmation/confirmatory.dart';
 part 'component/base_services/base.dart';
-part 'component/base_services/communication.dart';
+part 'component/base_services/communication/communication.dart';
 part 'component/base_services/crypto.dart';
 part 'component/base_services/data_access/data.dart';
 part 'component/base_services/data_access/permission.dart';
@@ -66,7 +72,6 @@ part 'exception/exception_handler.dart';
 part 'exception/style_exception.dart';
 part 'models/data_access/access.dart';
 part 'models/data_access/access_event.dart';
-part 'models/data_access/access_language.dart';
 part 'models/data_access/collection.dart';
 part 'models/data_access/permission_handler.dart';
 part 'models/data_access/trigger.dart';

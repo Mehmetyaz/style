@@ -16,7 +16,7 @@
  *
  */
 
-part of '../../style_base.dart';
+part of style_dart;
 
 /// Adds a new single sub-path or endpoint segment to parent path
 ///
@@ -146,7 +146,7 @@ class RouteBinding extends CallingBinding {
       [Route] working with Gateway.
       But using with: $parent , ${parent.component}
       if you want to only one route use [RouteTo] component
-      WHERE: $_errorWhere
+      WHERE: $where
       ''');
     }
   }
@@ -201,7 +201,7 @@ class RouteBinding extends CallingBinding {
       assert(
           rootGateway.result == null,
           'Not push gateway or new sub-route from root'
-          '\nwhere: $_errorWhere');
+          '\nwhere: $where');
     }
 
     if (childBinding != null) {
@@ -217,7 +217,7 @@ class RouteBinding extends CallingBinding {
           if use child, must put gateway the tree
           Route child using for define sub-segments
           
-          WHERE: $_errorWhere
+          WHERE: $where
           
           ''');
       }
@@ -232,7 +232,7 @@ class RouteBinding extends CallingBinding {
         or unknown routes,
         Must not create any new route 
         
-        WHERE: $_errorWhere
+        WHERE: $where
           
         ''');
       }

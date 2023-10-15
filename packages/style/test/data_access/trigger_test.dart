@@ -29,33 +29,33 @@ void main() async {
   await initStyleTester(
       'trigger',
       Server(
-          dataAccess: DataAccess(SimpleCacheDataAccess(),
-              defaultPermission: true,
-              collections: [
-                /// create
-                DbCollection('users', triggers: [
-                  Trigger.onCreate(onEvent: (event) async {
-                    print('On Create Triggered');
-                    createTriggered++;
-                    after = event.access.create!.toMap();
-                  }),
-                  Trigger.onWrite(onEvent: (event) async {
-                    print('On Write Triggered');
-                    writeTriggered++;
-                  }),
-                  Trigger.onUpdate(
-                      onEvent: (event) async {
-                        print('BEFORE: ${event.before}\n'
-                            'AFTER: ${event.after}');
-                        before = event.before;
-                        after = event.after;
-                        updateTriggered++;
-                      },
-                      beforeNeed: true,
-                      afterNeed: true)
-                ])
-              ]),
-          children: [RestAccessPoint('api')]), (tester) async {
+          // dataAccess: DataAccess(SimpleCacheDataAccess(),
+          //     defaultPermission: true,
+          //     collections: [
+          //       /// create
+          //       DbCollection('users', triggers: [
+          //         Trigger.onCreate(onEvent: (event) async {
+          //           print('On Create Triggered');
+          //           createTriggered++;
+          //           after = event.access.create!;
+          //         }),
+          //         Trigger.onWrite(onEvent: (event) async {
+          //           print('On Write Triggered');
+          //           writeTriggered++;
+          //         }),
+          //         Trigger.onUpdate(
+          //             onEvent: (event) async {
+          //               print('BEFORE: ${event.before}\n'
+          //                   'AFTER: ${event.after}');
+          //               before = event.before;
+          //               after = event.after;
+          //               updateTriggered++;
+          //             },
+          //             beforeNeed: true,
+          //             afterNeed: true)
+          //       ])
+          //     ]),
+          children: []), (tester) async {
     tester('/api/users', statusCodeIs(201),
         methods: Methods.POST, body: {'_id': 'user1', 'name': 'Mehmet'});
     test('triggered_create', () {

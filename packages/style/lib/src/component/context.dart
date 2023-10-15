@@ -16,7 +16,7 @@
  *
  */
 
-part of '../style_base.dart';
+part of style_dart;
 
 ///
 abstract class BuildContext {
@@ -27,85 +27,31 @@ abstract class BuildContext {
 
   Binding? _parent;
 
-  void _setServiceToThisAndParents<B extends BaseService>(B newService,
-      {bool onChild = false}) {
-    if (B == Crypto) {
-      if (onChild && _crypto != null) return;
-      if (onChild) {
-        _crypto ??= newService as Crypto;
-      } else {
-        _crypto = newService as Crypto;
-      }
-    } else if (B == DataAccess) {
-      if (onChild && _dataAccess != null) return;
-      if (onChild) {
-        _dataAccess ??= newService as DataAccess;
-      } else {
-        _dataAccess = newService as DataAccess;
-      }
-    } else if (B == WebSocketService) {
-      if (onChild && _socketService != null) return;
-      if (onChild) {
-        _socketService ??= newService as WebSocketService;
-      } else {
-        _socketService = newService as WebSocketService;
-      }
-    } else if (B == HttpService) {
-      if (onChild && _httpService != null) return;
-      if (onChild) {
-        _httpService ??= newService as HttpService;
-      } else {
-        _httpService = newService as HttpService;
-      }
-    } else if (B == Logger) {
-      if (onChild && _logger != null) return;
-      if (onChild) {
-        _logger ??= newService as Logger;
-      } else {
-        _logger = newService as Logger;
-      }
-    } else if (B == Authorization) {
-      if (onChild && _authorization != null) return;
-      if (onChild) {
-        _authorization ??= newService as Authorization;
-      } else {
-        _authorization = newService as Authorization;
-      }
-    } else {}
-    _parent?._setServiceToThisAndParents(newService, onChild: true);
-  }
-
   ///
   Component get component;
 
   Crypto? _crypto;
 
   ///
-  Crypto get crypto => _crypto!;
+  Crypto get crypto {
+    _crypto ??= findAncestorDelegateOf<Crypto>()!;
+    if (_crypto == null) {
+      throw ServiceUnavailable('socket_service');
+    }
+
+    return _crypto!;
+  }
 
   ///
-  bool hasService<T extends BaseService>() {
-    if (T == DataAccess) {
-      return _dataAccess != null;
-    } else if (T == WebSocketService) {
-      return _socketService != null;
-    } else if (T == HttpService) {
-      return _httpService != null;
-    } else if (T == Crypto) {
-      return _crypto != null;
-    } else if (T == Logger) {
-      return _logger != null;
-    } else if (T == Authorization) {
-      return _authorization != null;
-    } else {
-      return false;
-    }
+  bool hasService<T extends ModuleDelegate>() {
+    return findAncestorDelegateOf<T>() != null;
   }
 
   DataAccess? _dataAccess;
 
   ///
   DataAccess get dataAccess {
+    _dataAccess ??= findAncestorDelegateOf<DataAccess>()!;
     if (_dataAccess == null) {
       throw ServiceUnavailable('data_access');
     }
@@ -116,6 +62,7 @@ abstract class BuildContext {
 
   ///
   WebSocketService get socketService {
+    _socketService ??= findAncestorDelegateOf<WebSocketService>()!;
     if (_socketService == null) {
       throw ServiceUnavailable('socket_service');
     }
@@ -127,6 +74,7 @@ abstract class BuildContext {
 
   ///
   Authorization get authorization {
+    _authorization ??= findAncestorDelegateOf<Authorization>()!;
     if (_authorization == null) {
       throw ServiceUnavailable('authorization');
     }
@@ -139,6 +87,7 @@ abstract class BuildContext {
 
   ///
   HttpService get httpService {
+    _httpService ??= findAncestorDelegateOf<HttpService>()!;
     if (_httpService == null) {
       throw ServiceUnavailable('http_service');
     }
@@ -149,6 +98,7 @@ abstract class BuildContext {
 
   ///
   Logger get logger {
+    _logger ??= findAncestorDelegateOf<Logger>()!;
     if (_logger == null) {
       throw ServiceUnavailable('logger');
     }
@@ -176,6 +126,8 @@ abstract class BuildContext {
 
   ///
   T? findChildState<T extends State>();
+
+  T? findAncestorDelegateOf<T extends ModuleDelegate>();
 
   ///
   CallingBinding get findCalling;
@@ -228,12 +180,16 @@ abstract class Binding extends BuildContext {
   @override
   Component get component => _component;
 
-  String get _errorWhere {
+  String where([bool Function(Component component)? filter]) {
     var list = <Type>[];
 
     Binding? anc = this;
     while (anc != null) {
-      if (anc.component is! ServiceWrapper) {
+      if (filter != null) {
+        if (filter(anc.component)) {
+          list.add(anc.component.runtimeType);
+        }
+      } else {
         list.add(anc.component.runtimeType);
       }
       anc = anc._parent;
@@ -342,6 +298,18 @@ abstract class Binding extends BuildContext {
     }));
 
     return (visiting.result as StatefulBinding?)?.state as T?;
+  }
+
+  ///
+  @override
+  T? findAncestorDelegateOf<T extends ModuleDelegate>() {
+    var ancestor = _parent;
+    while (ancestor != null &&
+        !(ancestor is ModuleDelegateBinding &&
+            ancestor.component.delegate is T)) {
+      ancestor = ancestor._parent;
+    }
+    return (ancestor as ModuleDelegateBinding?)?.component.delegate as T?;
   }
 
   @override

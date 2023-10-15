@@ -16,7 +16,7 @@
  *
  */
 
-part of '../../style_base.dart';
+part of style_dart;
 
 ///
 abstract class GateBase extends SingleChildCallingComponent {
@@ -60,12 +60,23 @@ class GateCalling extends Calling {
       super.binding as SingleChildCallingBinding;
 
   @override
-  FutureOr<Message> onCall(Request request) async {
-    var gateRes = await (binding.component as GateBase).onRequest(request);
-    if (gateRes is Response) {
-      return gateRes;
+  FutureOr<Message> onCall(Request request) {
+    var gateRes = (binding.component as GateBase).onRequest(request);
+    if (gateRes is Future) {
+      return Future(() async {
+        var r = await gateRes;
+        if (r is Response) {
+          return r;
+        } else {
+          return binding.child.findCalling.calling(request);
+        }
+      });
     } else {
-      return binding.child.findCalling.calling(request);
+      if (gateRes is Response) {
+        return gateRes;
+      } else {
+        return binding.child.findCalling.calling(request);
+      }
     }
   }
 }
@@ -97,11 +108,9 @@ class GateWithChildCalling extends Calling {
       super.binding as SingleChildCallingBinding;
 
   @override
-  FutureOr<Message> onCall(Request request) async {
-    var gateRes = await (binding.component as GateWithChild)
+  FutureOr<Message> onCall(Request request) {
+    return (binding.component as GateWithChild)
         .onRequest(request, binding.child.findCalling.calling);
-
-    return gateRes;
   }
 }
 

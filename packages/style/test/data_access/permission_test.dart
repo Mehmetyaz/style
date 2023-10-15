@@ -33,16 +33,16 @@ class _MyServer extends StatelessComponent {
 
   @override
   Component build(BuildContext context) => Server(
-        dataAccess: DataAccess(SimpleCacheDataAccess(),
-            defaultPermission: false,
-            collections: [
-              DbCollection('pass', permissionHandler:
-                  PermissionHandler.custom(callback: (event) => true)),
-              DbCollection('fail', permissionHandler:
-                  PermissionHandler.custom(callback: (event) => false)),
-              DbCollection('pass_static',
-                  permissionHandler: PermissionHandler.static(
-                      defaultPermission: false, read: true))
-            ]),
-        children: [RestAccessPoint('api')]);
+      // dataAccess: DataAccess(SimpleCacheDataAccess(),
+      //     defaultPermission: false,
+      //     collections: [
+      //       DbCollection('pass', permissionHandler:
+      //           PermissionHandler.custom(callback: (event) => true)),
+      //       DbCollection('fail', permissionHandler:
+      //           PermissionHandler.custom(callback: (event) => false)),
+      //       DbCollection('pass_static',
+      //           permissionHandler: PermissionHandler.static(
+      //               defaultPermission: false, read: true))
+      //     ]),
+      children: []);
 }

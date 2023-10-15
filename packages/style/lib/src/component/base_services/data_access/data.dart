@@ -16,13 +16,95 @@
  *
  */
 
-part of '../../../style_base.dart';
+part of style_dart;
+
+
+///
+typedef JsonMap = Map<String, dynamic>;
+
+///
+enum AccessType {
+  ///
+  read,
+
+  ///
+  readMultiple,
+
+  ///
+  create,
+
+  ///
+  update,
+
+  ///
+  exists,
+
+  ///
+  listen,
+
+  ///
+  delete,
+
+  ///
+  count,
+
+  ///
+  //aggregation
+}
+
+/// A request to access the database / a collection in the database.
+/// Any CRUD operations, aggregations,
+/// or other operations are defined as [Access].
+///
+class Access {
+  ///
+  const Access(
+      {this.query,
+        required this.type,
+        this.create,
+        this.update,
+        required this.collection,
+        this.pipeline,
+        this.settings});
+
+  ///
+  final JsonMap? query;
+
+  ///
+  final JsonMap? pipeline;
+
+  ///
+  final JsonMap? settings;
+
+  ///
+  final AccessType type;
+
+  ///
+  final String collection;
+
+  ///
+  final JsonMap? create;
+
+  ///
+  final JsonMap? update;
+
+  ///
+  JsonMap toMap() => {
+    'collection': collection,
+    'type': type.index,
+    if (create != null) 'create': create,
+    if (update != null) 'update': update,
+    if (pipeline != null) 'pipeline': pipeline!,
+    if (query != null) 'query': query,
+  };
+}
+
 
 ///
 typedef DbOperation<T extends DbResult> = FutureOr<T> Function(Access access);
 
 ///
-abstract class DataAccess<L extends AccessLanguage> extends BaseService {
+abstract class DataAccess extends ModuleDelegate {
   ///
   factory DataAccess(
     DataAccessImplementation implementation, {
@@ -77,22 +159,22 @@ abstract class DataAccess<L extends AccessLanguage> extends BaseService {
       triggerService = TriggerService.create(collections: collections);
     }
 
-    DataAccess<L> acc;
+    DataAccess acc;
 
     if (collections?.isEmpty ?? true) {
-      acc = _DataAccessEmpty<L>(implementation, identifierMapping);
+      acc = _DataAccessEmpty(implementation, identifierMapping);
     } else if (triggerService != null && permissionHandler == null) {
-      acc = _DataAccessWithOnlyTrigger<L>(
+      acc = _DataAccessWithOnlyTrigger(
           implementation, triggerService, identifierMapping);
     } else if (triggerService == null && permissionHandler != null) {
-      acc = _DataAccessWithPermission<L>(
+      acc = _DataAccessWithPermission(
           implementation, permissionHandler, identifierMapping);
     } else {
-      acc = _DataAccessWithTriggerAndPermission<L>(implementation,
-          triggerService!, permissionHandler!, identifierMapping);
+      acc = _DataAccessWithTriggerAndPermission(implementation, triggerService!,
+          permissionHandler!, identifierMapping);
     }
 
-    QueryLanguageBinding().initDelegate(CommonLanguageDelegate());
+    //QueryLanguageBinding().initDelegate(CommonLanguageDelegate());
 
     return acc;
   }
@@ -120,13 +202,13 @@ abstract class DataAccess<L extends AccessLanguage> extends BaseService {
   ///
   static DataAccess of(BuildContext context) => context.dataAccess;
 
-  final QueryLanguageBinding _queryLanguageBinding = QueryLanguageBinding();
+  //final QueryLanguageBinding _queryLanguageBinding = QueryLanguageBinding();
 
   ///
-  AccessEvent<L> buildAccess(AccessEvent builder) {
-    var res = _queryLanguageBinding.convertTo<L>(builder.access);
-    return AccessEvent<L>(access: res, request: builder.request);
-  }
+  // AccessEvent buildAccess(AccessEvent builder) {
+  //   var res = _queryLanguageBinding.convertTo(builder.access);
+  //   return AccessEvent(access: res, request: builder.request);
+  // }
 
   ///
   DataAccessImplementation implementation;
@@ -159,41 +241,41 @@ abstract class DataAccess<L extends AccessLanguage> extends BaseService {
         return _operation(access, _delete);
       case AccessType.count:
         return _operation(access, _count);
-      case AccessType.aggregation:
-        return _operation(access, _aggregation);
+      // case AccessType.aggregation:
+      //   return _operation(access, _aggregation);
     }
   }
 
   ///
-  FutureOr<ReadDbResult> read(AccessEvent<L> access) =>
+  FutureOr<ReadDbResult> read(AccessEvent access) =>
       _operation<ReadDbResult>(access, _read);
 
   ///
-  FutureOr<ReadListResult> readList(AccessEvent<L> access) =>
+  FutureOr<ReadListResult> readList(AccessEvent access) =>
       _operation<ReadListResult>(access, _readList);
 
   ///
-  FutureOr<ReadListResult> aggregation(AccessEvent<L> access) =>
+  FutureOr<ReadListResult> aggregation(AccessEvent access) =>
       _operation<ReadListResult>(access, _aggregation);
 
   ///
-  FutureOr<DbResult<bool>> exists(AccessEvent<L> access) =>
+  FutureOr<DbResult<bool>> exists(AccessEvent access) =>
       _operation<DbResult<bool>>(access, _exists);
 
   ///
-  FutureOr<DeleteDbResult> delete(AccessEvent<L> access) =>
+  FutureOr<DeleteDbResult> delete(AccessEvent access) =>
       _operation<DeleteDbResult>(access, _delete);
 
   ///
-  FutureOr<UpdateDbResult> update(AccessEvent<L> access) =>
+  FutureOr<UpdateDbResult> update(AccessEvent access) =>
       _operation<UpdateDbResult>(access, _update);
 
   ///
-  FutureOr<CreateDbResult> create(AccessEvent<L> access) =>
+  FutureOr<CreateDbResult> create(AccessEvent access) =>
       _operation<CreateDbResult>(access, _create);
 
   ///
-  FutureOr<DbResult<int>> count(AccessEvent<L> access) =>
+  FutureOr<DbResult<int>> count(AccessEvent access) =>
       _operation<DbResult<int>>(access, _count);
 
   // ///
@@ -238,8 +320,8 @@ abstract class DataAccess<L extends AccessLanguage> extends BaseService {
       };
 }
 
-class _DataAccessWithTriggerAndPermission<L extends AccessLanguage>
-    extends DataAccess<L> {
+class _DataAccessWithTriggerAndPermission
+    extends DataAccess {
   _DataAccessWithTriggerAndPermission(
       DataAccessImplementation implementation,
       TriggerService triggerService,
@@ -251,19 +333,17 @@ class _DataAccessWithTriggerAndPermission<L extends AccessLanguage>
             identifierMapping: identifierMapping);
 
   @override
-  FutureOr<T> _operation<T extends DbResult>(AccessEvent builder,
-      FutureOr<T> Function(Access<L> acc) interoperation) async {
-    var e = buildAccess(builder);
-    if (await permissionHandler!.check(e)) {
-      return triggerService!.triggerAndReturn(e, interoperation);
+  FutureOr<T> _operation<T extends DbResult>(AccessEvent event,
+      FutureOr<T> Function(Access acc) interoperation) async {
+    if (await permissionHandler!.check(event)) {
+      return triggerService!.triggerAndReturn(event, interoperation);
     } else {
       throw ForbiddenUnauthorizedException();
     }
   }
 }
 
-class _DataAccessWithOnlyTrigger<L extends AccessLanguage>
-    extends DataAccess<L> {
+class _DataAccessWithOnlyTrigger extends DataAccess {
   _DataAccessWithOnlyTrigger(DataAccessImplementation implementation,
       TriggerService triggerService, Map<String, String>? identifierMapping)
       : super._(implementation,
@@ -271,30 +351,28 @@ class _DataAccessWithOnlyTrigger<L extends AccessLanguage>
             identifierMapping: identifierMapping);
 
   @override
-  FutureOr<T> _operation<T extends DbResult>(AccessEvent builder,
-      FutureOr<T> Function(Access<L> access) interoperation) {
+  FutureOr<T> _operation<T extends DbResult>(
+      AccessEvent event, FutureOr<T> Function(Access access) interoperation) {
     try {
-      return triggerService!
-          .triggerAndReturn(buildAccess(builder), interoperation);
+      return triggerService!.triggerAndReturn(event, interoperation);
     } on Exception {
       rethrow;
     }
   }
 }
 
-class _DataAccessEmpty<L extends AccessLanguage> extends DataAccess<L> {
+class _DataAccessEmpty extends DataAccess {
   _DataAccessEmpty(DataAccessImplementation implementation,
       Map<String, String>? identifierMapping)
       : super._(implementation, identifierMapping: identifierMapping);
 
   @override
-  FutureOr<T> _operation<T extends DbResult>(AccessEvent access,
-          FutureOr<T> Function(Access<L> acc) interoperation) =>
-      interoperation(buildAccess(access).access);
+  FutureOr<T> _operation<T extends DbResult>(
+          AccessEvent event, FutureOr<T> Function(Access acc) interoperation) =>
+      interoperation(event.access);
 }
 
-class _DataAccessWithPermission<L extends AccessLanguage>
-    extends DataAccess<L> {
+class _DataAccessWithPermission extends DataAccess {
   _DataAccessWithPermission(
       DataAccessImplementation implementation,
       PermissionHandlerService permissionHandler,
@@ -304,14 +382,13 @@ class _DataAccessWithPermission<L extends AccessLanguage>
             identifierMapping: identifierMapping);
 
   @override
-  FutureOr<T> _operation<T extends DbResult>(AccessEvent builder,
-      FutureOr<T> Function(Access<L> access) interoperation) async {
+  FutureOr<T> _operation<T extends DbResult>(AccessEvent event,
+      FutureOr<T> Function(Access access) interoperation) async {
     try {
-      var e = buildAccess(builder);
-      if (await permissionHandler!.check(e)) {
-        return interoperation(e.access);
+      if (await permissionHandler!.check(event)) {
+        return interoperation(event.access);
       } else {
-        throw ForbiddenUnauthorizedException()..payload = e.toMap(false);
+        throw ForbiddenUnauthorizedException()..payload = event.toMap(false);
       }
     } on Exception {
       rethrow;
@@ -320,12 +397,12 @@ class _DataAccessWithPermission<L extends AccessLanguage>
 }
 
 ///
-abstract class DataAccessImplementation<L extends AccessLanguage> {
+abstract class DataAccessImplementation {
   ///
   FutureOr<bool> init();
 
   ///
-  FutureOr<DbResult> any(AccessEvent<L> event) {
+  FutureOr<DbResult> any(AccessEvent event) {
     switch (event.access.type) {
       case AccessType.read:
         return read(event.access);
@@ -339,8 +416,8 @@ abstract class DataAccessImplementation<L extends AccessLanguage> {
         return exists(event.access);
       case AccessType.listen:
         throw UnimplementedError();
-      case AccessType.aggregation:
-        return aggregation(event.access);
+      // case AccessType.aggregation:
+      //   return aggregation(event.access);
       case AccessType.delete:
         return delete(event.access);
       case AccessType.count:
@@ -349,34 +426,34 @@ abstract class DataAccessImplementation<L extends AccessLanguage> {
   }
 
   ///
-  FutureOr<ReadDbResult> read(Access<L> access);
+  FutureOr<ReadDbResult> read(Access access);
 
   ///
-  FutureOr<ReadListResult> readList(Access<L> access);
+  FutureOr<ReadListResult> readList(Access access);
 
   ///
-  FutureOr<ReadListResult> aggregation(Access<L> access);
+  FutureOr<ReadListResult> aggregation(Access access);
 
   ///
-  FutureOr<DeleteDbResult> delete(Access<L> access);
+  FutureOr<DeleteDbResult> delete(Access access);
 
   ///
-  FutureOr<UpdateDbResult> update(Access<L> access);
+  FutureOr<UpdateDbResult> update(Access access);
 
   ///
-  FutureOr<CreateDbResult> create(Access<L> access);
+  FutureOr<CreateDbResult> create(Access access);
 
   ///
-  FutureOr<BoolDbResult> exists(Access<L> access);
+  FutureOr<BoolDbResult> exists(Access access);
 
   ///
-  FutureOr<CountDbResult> count(Access<L> access);
+  FutureOr<CountDbResult> count(Access access);
 
   ///
   BuildContext get context => dataAccess.context;
 
   ///
-  late final DataAccess<L> dataAccess;
+  late final DataAccess dataAccess;
 }
 
 ///
@@ -440,254 +517,4 @@ class DeleteDbResult extends DbResult<Map<String, dynamic>?> {
   ///
   DeleteDbResult({required bool exists})
       : super(data: null, statusCode: exists ? 200 : 404);
-}
-
-///
-class SimpleCacheDataAccess extends DataAccessImplementation<CommonLanguage> {
-  ///
-  SimpleCacheDataAccess();
-
-  ///
-  final Map<String, Map<String, Map<String, dynamic>>> data = {};
-
-  @override
-  Future<bool> init([bool inInterface = true]) async => true;
-
-  @override
-  FutureOr<CreateDbResult> create(Access<CommonLanguage> access) =>
-      CreateDbResult(identifier: '1111');
-
-  @override
-  FutureOr<DeleteDbResult> delete(Access<CommonLanguage> access) {
-    throw UnimplementedError();
-    // if (access.identifier == null) {
-    //   throw BadRequests();
-    // }
-    // if (data[access.collection]?[access.identifier!] == null) {
-    //   return DeleteDbResult(exists: false);
-    // } else {
-    //   data[access.collection]!.remove(access.identifier);
-    //   return DeleteDbResult(exists: true);
-    // }
-  }
-
-  @override
-  Future<ReadDbResult> read(Access<CommonLanguage> access) async {
-    throw UnimplementedError();
-    // if (access.identifier == null) {
-    //   throw BadRequests();
-    // }
-    // var d = data[access.collection]?[access.identifier];
-    //
-    // if (d == null) throw NotFoundException();
-    // return ReadDbResult(data: Map<String, dynamic>.from(d));
-  }
-
-  @override
-  FutureOr<ReadListResult> readList(covariant CommonAccess access) {
-    var q = access.query as CommonQuery?;
-
-    if (q?.filter != null) {
-      Logger.of(context).warn(context, 'query_not_supported',
-          title: 'Query selector '
-              'not supported with SimpleCacheDataAccess , so its skipped');
-    }
-
-    if (q?.sortExpression != null) {
-      Logger.of(context).warn(context, 'sort_not_supported',
-          title: 'Query sort '
-              'not supported with SimpleCacheDataAccess , so its skipped');
-    }
-    if (access.query?.fields != null) {
-      Logger.of(context).warn(context, 'fields_not_supported',
-          title: 'Query fields '
-              'not supported with SimpleCacheDataAccess , so its skipped');
-    }
-    var l = q?.limit ?? 200;
-    var s = q?.offset ?? 0;
-
-    var len = data[access.collection]?.length ?? 0;
-
-    var nLen = len - s;
-
-    if (nLen <= 0) {
-      return ReadListResult(data: []);
-    }
-
-    if (l >= nLen) {
-      l = nLen;
-    }
-
-    return ReadListResult(
-        data: _copy(
-            data[access.collection]?.values.toList().sublist(s).sublist(0, l)));
-  }
-
-  List<T>? _copy<T>(List<T>? l) {
-    if (l == null) return null;
-    return List<T>.from(l);
-  }
-
-  @override
-  FutureOr<UpdateDbResult> update(Access<CommonLanguage> access) {
-    throw UnimplementedError();
-    // if (access.update == null) {
-    //   throw BadRequests();
-    // }
-    // if (access.identifier == null) {
-    //   throw BadRequests();
-    // }
-    // data[access.collection]?[access.identifier]
-    // ?.addAll(access.update!.toMap());
-    // return UpdateDbResult(data: null);
-  }
-
-  @override
-  FutureOr<DbResult<int>> count(Access<CommonLanguage> access) {
-    if (access.query != null) {
-      Logger.of(context).warn(context, 'query_not_supported',
-          title: 'Query '
-              'not supported with SimpleCacheDataAccess , so its skipped');
-    }
-    return DbResult<int>(data: data[access.collection]?.length ?? 0);
-  }
-
-  @override
-  FutureOr<DbResult<bool>> exists(Access<CommonLanguage> access) {
-    throw UnimplementedError();
-    // // TODO: implement exists
-    // if (access.query != null) {
-    //   Logger.of(context).warn(context, "query_not_supported",
-    //       title: "Query "
-    //           "not supported with SimpleCacheDataAccess , so its skipped");
-    // }
-    //
-    // if (access.identifier == null) {
-    //   throw BadRequests();
-    // }
-    //
-    // return DbResult<bool>(
-    //     data: data[access.collection]?[access.identifier!] != null);
-  }
-
-  @override
-  FutureOr<ReadListResult> aggregation(Access<CommonLanguage> access) {
-    throw UnimplementedError(
-        'Aggregation not supported with Simple(Cache)DataAccess');
-  }
-}
-
-///
-// class StoreDelegate<T extends Identifier> {
-//   ///
-//   StoreDelegate(
-//       {required this.collection,
-//       DataAccess? customAccess,
-//       required this.toMap,
-//       required this.fromMap})
-//       : _access = customAccess;
-//
-//   ///
-//   DataAccess get access => _access!;
-//
-//   ///
-//   void attach(BuildContext context) {
-//     _access ??= DataAccess.of(context);
-//   }
-//
-//   ///
-//   Future<T> read(String id) async {
-//     return fromMap(
-//         (await access.read(Read(collection:
-//         collection, identifier: id))).data);
-//   }
-//
-//   ///
-//   Future<void> write(T instance) async {
-//     await access.create(Create(collection:
-//     collection, data: toMap(instance)));
-//   }
-//
-//   ///
-//   Future<void> delete(String identifier) async {
-//     await access.delete(Delete(collection:
-//     collection, identifier: identifier));
-//   }
-//
-//   DataAccess? _access;
-//
-//   ///
-//   String collection;
-//
-//   ///
-//   Map<String, dynamic> Function(T instance) toMap;
-//
-//   ///
-//   T Function(Map<String, dynamic> map) fromMap;
-// }
-
-///
-class SimpleDataAccess extends SimpleCacheDataAccess {
-  ///
-  SimpleDataAccess(this.directory)
-      : assert(directory.endsWith(Platform.pathSeparator) ||
-            directory.endsWith('/'));
-
-  ///
-  String directory;
-
-  @override
-  Future<bool> init([bool inInterface = true]) async {
-    var docs = await Directory(directory)
-        .list()
-        .where((event) => event.path.endsWith('.json'))
-        .toList();
-
-    var colsFtrs =
-        docs.map((e) async => json.decode(await File(e.path).readAsString()));
-    var cols = await Future.wait(colsFtrs);
-    var i = 0;
-    while (i < cols.length) {
-      data[docs[i].path.split('/').last.replaceAll('.json', '')] =
-          (cols[i] as Map).cast<String, Map<String, dynamic>>();
-      i++;
-    }
-    return true;
-  }
-
-  ///
-  Future<void> saveCollection(String collection) async {
-    var f = File('$directory$collection.json');
-    if (!(await f.exists())) {
-      await f.create();
-    }
-    await f.writeAsString(json.encode(data[collection]));
-  }
-
-  @override
-  FutureOr<CreateDbResult> create(Access<CommonLanguage> access) async {
-    var res = await super.create(access);
-
-    await saveCollection(access.collection);
-
-    return res;
-  }
-
-  @override
-  FutureOr<UpdateDbResult> update(Access<CommonLanguage> access) async {
-    var res = await super.update(access);
-
-    await saveCollection(access.collection);
-
-    return res;
-  }
-
-  @override
-  FutureOr<DeleteDbResult> delete(Access<CommonLanguage> access) async {
-    var res = await super.delete(access);
-
-    await saveCollection(access.collection);
-
-    return res;
-  }
 }

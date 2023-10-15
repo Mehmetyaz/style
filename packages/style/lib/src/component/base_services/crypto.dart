@@ -16,10 +16,10 @@
  *
  */
 
-part of '../../style_base.dart';
+part of style_dart;
 
 ///
-abstract class Crypto extends BaseService {
+abstract class Crypto extends ModuleDelegate {
   ///
   static Crypto of(BuildContext context) => context.crypto;
 

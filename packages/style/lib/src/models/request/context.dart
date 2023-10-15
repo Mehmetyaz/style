@@ -16,7 +16,7 @@
  *
  */
 
-part of '../../style_base.dart';
+part of style_dart;
 
 /// It refers to the context in which the request
 /// occurs and the [BuildContext] of the endpoints and gates it reaches.

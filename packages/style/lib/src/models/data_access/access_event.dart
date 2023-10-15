@@ -16,7 +16,7 @@
  *
  */
 
-part of '../../style_base.dart';
+part of style_dart;
 
 ///Mongo Db Operation Type
 enum DbOperationType {
@@ -49,7 +49,7 @@ enum DbOperationType {
 // }
 
 ///
-class AccessEvent<T extends AccessLanguage> {
+class AccessEvent {
   ///
   AccessEvent(
       {required this.access, required this.request, this.errors, this.context})
@@ -75,13 +75,13 @@ class AccessEvent<T extends AccessLanguage> {
         return DbOperationType.delete;
       case AccessType.count:
         return DbOperationType.read;
-      case AccessType.aggregation:
-        return DbOperationType.read;
+      // case AccessType.aggregation:
+      //   return DbOperationType.read;
     }
   }
 
   ///
-  Access<T> access;
+  Access access;
 
   ///
   AccessToken? get token => request?.token;
@@ -119,42 +119,42 @@ class AccessEvent<T extends AccessLanguage> {
 }
 
 ///
-class Read<L extends AccessLanguage> extends AccessEvent<L> {
+class Read extends AccessEvent {
   ///
   Read(
       {Request? request,
       required String collection,
-      required Query<L> query,
+      required JsonMap query,
       AccessToken? customToken})
       : super(
             request: request?..token = customToken,
-            access: Access<L>(
+            access: Access(
                 type: AccessType.read, collection: collection, query: query));
 }
 
 ///
-class ReadMultiple<L extends AccessLanguage> extends AccessEvent<L> {
+class ReadMultiple extends AccessEvent {
   ///
   ReadMultiple(
       {Request? request,
       required String collection,
-      Query<L>? query,
+      JsonMap? query,
       AccessToken? customToken})
       : super(
             request: request?..token = customToken,
-            access: Access<L>(
+            access: Access(
                 type: AccessType.readMultiple,
                 collection: collection,
                 query: query));
 }
 
 ///
-class Create<L extends AccessLanguage> extends AccessEvent<L> {
+class Create extends AccessEvent {
   ///
   Create(
       {Request? request,
       required String collection,
-      required CreateData<L> data,
+      required JsonMap data,
       AccessToken? customToken})
       : super(
             request: request?..token = customToken,
@@ -163,14 +163,14 @@ class Create<L extends AccessLanguage> extends AccessEvent<L> {
 }
 
 ///
-class Update<L extends AccessLanguage> extends AccessEvent<L> {
+class Update extends AccessEvent {
   ///
   Update(
       {Request? request,
       required String collection,
-      Query<L>? query,
+      JsonMap? query,
       String? identifier,
-      required UpdateData<L> data,
+      required JsonMap data,
       AccessToken? customToken})
       : assert(identifier != null || query != null),
         super(
@@ -180,26 +180,26 @@ class Update<L extends AccessLanguage> extends AccessEvent<L> {
 }
 
 ///
-class Delete<L extends AccessLanguage> extends AccessEvent<L> {
+class Delete extends AccessEvent {
   ///
   Delete(
       {Request? request,
       required String collection,
-      required Query<L> query,
+      required JsonMap query,
       AccessToken? customToken})
       : super(
             request: request?..token = customToken,
-            access: Access<L>(
+            access: Access(
                 type: AccessType.delete, collection: collection, query: query));
 }
 
 ///
-class Count<L extends AccessLanguage> extends AccessEvent<L> {
+class Count extends AccessEvent {
   ///
   Count(
       {Request? request,
       required String collection,
-      Query<L>? query,
+      JsonMap? query,
       AccessToken? customToken})
       : super(
           request: request?..token = customToken,
@@ -209,15 +209,15 @@ class Count<L extends AccessLanguage> extends AccessEvent<L> {
 }
 
 ///
-class Exists<L extends AccessLanguage> extends AccessEvent<L> {
+class Exists extends AccessEvent {
   ///
   Exists(
       {Request? request,
       required String collection,
-      required Query<L> query,
+      required JsonMap query,
       AccessToken? customToken})
       : super(
             request: request?..token = customToken,
-            access: Access<L>(
+            access: Access(
                 type: AccessType.exists, collection: collection, query: query));
 }

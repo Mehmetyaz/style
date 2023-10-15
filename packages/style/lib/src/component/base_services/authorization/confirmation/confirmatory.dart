@@ -16,30 +16,22 @@
  *
  */
 
-part of '../../../../style_base.dart';
+part of style_dart;
 
 ///
-class Confirmatory {
+class SecondaryConfirmatory<T extends NonDemandMessage> {
   /// Sessions not stored generally. If you want to store,
   /// define [customSessionDataAccess]
-  Confirmatory({
+  SecondaryConfirmatory({
     Key? key,
-    required ConfirmatoryDelegate confirmatoryDelegate,
-    this.customConfirmationDataAccess,
-    this.customSessionDataAccess,
-    this.sessionCollection,
-    this.confirmationCollection,
+    required this.type,
+    required SecondaryConfirmatoryDelegate<T> confirmatoryDelegate,
+    this.defaultTimeout = const Duration(minutes: 5),
+    this.sessionCollection = 'confirmation_sessions',
+    this.confirmationCollection = 'confirmations',
+    this.usageCollection = 'confirmation_usages',
   })  : _delegate = confirmatoryDelegate,
-        key = key ?? Key.random()
-  /*   _sessionStore = _defaultSessionStorage(
-            customSessionDataAccess, customSessionCollection),
-        _confirmationStore = _defaultConfirmationStorage(
-          customConfirmationCollection,
-          customConfirmationDataAccess,
-        ),*/
-  /*_sessionIDGenerator =
-            sessionIdGenerator ?? RandomGenerator("[*#]/l(30)");*/
-  ;
+        key = key ?? Key.random();
 
   ///
   final Key key;
@@ -47,24 +39,14 @@ class Confirmatory {
   ///
   ///final RandomGenerator _sessionIDGenerator;
 
-  ///
-  ConfirmationType get type => _delegate.type;
+  Authorization? _authorization;
 
-  ///
-  String? sessionCollection;
+  Authorization get authorization => _authorization!;
 
-  ///
-  String? confirmationCollection;
-
-  ///
-  DataAccess? customSessionDataAccess;
-
-  ///
-  DataAccess? customConfirmationDataAccess;
-
-  void _attach(BuildContext context) {
+  void _attach(BuildContext context, Authorization authorization) {
     _context = context;
     _delegate.init(this);
+    _authorization = authorization;
   }
 
   BuildContext? _context;
@@ -73,7 +55,7 @@ class Confirmatory {
   BuildContext get context => _context!;
 
   ///
-  final ConfirmatoryDelegate _delegate;
+  final SecondaryConfirmatoryDelegate<T> _delegate;
 
   ///
   FutureOr<void> useConfirm(String id) {
@@ -82,57 +64,130 @@ class Confirmatory {
 
   ///
   FutureOr<Confirmation> confirm(
-      Request clientRequest, ConfirmRequest request) {
+      Request clientRequest, ConfirmRequest request) async {
     try {
-      //TODO: Log
-      return _delegate.confirm(clientRequest, request);
+      var confirm = await _delegate.confirm(clientRequest, request);
+
+      await confirmationDataAccess.create(
+          Create(collection: confirmationCollection, data: confirm.toMap()));
+
+      _delegate.onConfirm(confirm);
+
+      // TODO: Update
+      await sessionDataAccess
+          .update(Update(collection: sessionCollection, query: {
+        'session_id': confirm.sessionID,
+      }, data: {
+        'confirmed': true,
+        'confirmedAt': DateTime.now(),
+        'confirm_id': confirm.confirmID,
+      }));
+
+      return confirm;
     } on Exception {
       rethrow;
     }
   }
 
+  /// Create confirmation session.
   ///
-  FutureOr<ConfirmationSession> createSession(
-      ConfirmationSession session) async {
-    Logger.of(context).info(context, 'confirmation_session_created',
-        payload: session.toMap());
-    await _delegate.onSessionCreated(session);
+  /// A session mean a confirmation request like password, email code, sms code.
+  ///
+  Future<ConfirmationSession> createSession(NonDemandClient client,
+      {JsonMap? customData, Duration? customTimeout}) async {
+    var session = ConfirmationSession(
+        client: client,
+        sessionID: sessionIDGenerator.generateString(),
+        confirmationType: type,
+        customData: customData,
+        requestDate: DateTime.now(),
+        timeout: customTimeout ?? defaultTimeout,
+        userId: client.userID,
+        code: _delegate is CodeConfirmationDelegate
+            ? (_delegate as CodeConfirmationDelegate)
+                .codeGenerator
+                .generateString()
+            : (_delegate as TokenConfirmationDelegate)
+                .tokenGenerator
+                .generateString());
+
+    _delegate.onSessionCreated(session);
+    var message = await _delegate.createMessageFromSession(session);
+
+    //TODO: Log
+    //TODO: catch
+    await sessionDataAccess
+        .create(Create(collection: sessionCollection, data: session.toMap()));
+
+    var communication = context.findAncestorDelegateOf<CommunicationCenter>();
+
+    if (communication == null) {
+      throw Exception('CommunicationCenter not found');
+    }
+
+    var communicator = communication.getCommunicator(message.client.type);
+
+    communicator.send(message);
+
     return session;
   }
+
+  String sessionCollection;
+  String confirmationCollection;
+  String usageCollection;
+
+  DataAccess get sessionDataAccess =>
+      _sessionDataAccess ?? DataAccess.of(context);
+
+  DataAccess get confirmationDataAccess =>
+      _confirmationDataAccess ?? DataAccess.of(context);
+
+  DataAccess? _sessionDataAccess;
+  DataAccess? _confirmationDataAccess;
+
+  ///
+  final ConfirmationType type;
+
+  final Duration defaultTimeout;
+
+  RandomGenerator get _defaultSessionIdGenerator =>
+      RandomGenerator('[*#]/l(30)');
+
+  RandomGenerator? _sessionIDGenerator;
+
+  RandomGenerator get sessionIDGenerator =>
+      _sessionIDGenerator ?? _defaultSessionIdGenerator;
+}
+
+abstract class CodeConfirmationDelegate<T extends NonDemandMessage>
+    extends SecondaryConfirmatoryDelegate<T> {
+  RandomGenerator get codeGenerator;
+}
+
+abstract class TokenConfirmationDelegate<T extends NonDemandMessage> {
+  RandomGenerator get tokenGenerator;
 }
 
 /// Do not extends or implement directly.
 /// Use [CodeConfirmatoryDelegate] or [LinkConfirmatoryDelegate]
-abstract class ConfirmatoryDelegate<S extends ConfirmationSession,
-    C extends Confirmation, R extends ConfirmRequest> {
+abstract class SecondaryConfirmatoryDelegate<T extends NonDemandMessage> {
   ///
-  ConfirmatoryDelegate({
-    required this.type,
-  });
+  SecondaryConfirmatoryDelegate();
 
   ///
   BuildContext get context => _confirmatory.context;
 
   ///
-  final ConfirmationType type;
-
-  ///
-  late Confirmatory _confirmatory;
+  late SecondaryConfirmatory _confirmatory;
 
   ///
   @mustCallSuper
-  FutureOr<void> init(Confirmatory confirmatory) {
+  FutureOr<void> init(SecondaryConfirmatory confirmatory) {
     _confirmatory = confirmatory;
   }
 
   ///
-  FutureOr<S> getSession(String sessionID);
-
-  ///
-  FutureOr<C> getConfirmation(String confirmationID);
-
-  ///
-  FutureOr<void> saveSession(S session);
+  FutureOr<T> createMessageFromSession(ConfirmationSession session);
 
   ///
   FutureOr<void> useSession(
@@ -142,38 +197,29 @@ abstract class ConfirmatoryDelegate<S extends ConfirmationSession,
       required String useCase});
 
   ///
-  FutureOr<void> saveConfirmation(S session);
+  FutureOr<Confirmation> confirm(
+      Request clientRequest, ConfirmRequest confirmRequest);
+
+  FutureOr<void> onConfirm(Confirmation confirmation) {}
 
   ///
-  FutureOr<C> confirm(Request clientRequest, R confirmRequest);
-
-  ///
-  FutureOr<void> onSessionCreated(S session);
+  FutureOr<void> onSessionCreated(ConfirmationSession session);
 }
 
-///
-abstract class CodeConfirmationDelegate extends ConfirmatoryDelegate {
-  ///
-  CodeConfirmationDelegate() : super(type: ConfirmationType.code);
-
-  ///
-  String getRandomCode();
-}
-
-///
-abstract class ConfirmationTypeAbstract {}
-
-///
+/// Confirmation Request
 abstract class ConfirmRequest {
   ///
-  ConfirmRequest({required this.sessionID});
+  ConfirmRequest({required this.sessionID, required this.type});
 
-  ///
+  /// Session ID of confirmation
   String sessionID;
+
+  /// Type of confirmation
+  String type;
 }
 
 ///
-class ConfirmationSession {
+class ConfirmationSession<T extends NonDemandMessage> {
   ///
   ConfirmationSession(
       {required this.userId,
@@ -194,10 +240,15 @@ class ConfirmationSession {
           confirmationType: ConfirmationType.values[map['type'] as int],
           customData: map['custom_data'] as Map<String, dynamic>?,
           sessionID: map['session_id'] as String,
+          code: map['code'] as String?,
+          timeout: map['timeout'] == null
+              ? null
+              : Duration(milliseconds: map['timeout'] as int),
           requestDate:
               DateTime.fromMillisecondsSinceEpoch(map['request_date'] as int),
-          client: MessageReceiver.fromMap(
-              map['client'] as Map<String, dynamic>)); //TODO: Message receiver
+          client: () {
+            throw 0;
+          }()); //TODO: Message receiver
 
   ///
   Map<String, dynamic> toMap() => {
@@ -206,7 +257,9 @@ class ConfirmationSession {
         if (customData != null) 'custom_data': customData,
         'client': client.toMap(),
         'session_id': sessionID,
-        'request_date': requestDate.millisecondsSinceEpoch
+        'request_date': requestDate.millisecondsSinceEpoch,
+        if (timeout != null) 'timeout': timeout!.inMilliseconds,
+        if (code != null) 'code': code,
       };
 
   ///
@@ -231,7 +284,7 @@ class ConfirmationSession {
   ConfirmationType confirmationType;
 
   /// Validation client.
-  MessageReceiver client;
+  NonDemandClient client;
 
   ///
   Map<String, dynamic>? customData;
@@ -247,7 +300,8 @@ class Confirmation {
       required this.confirmationType,
       required this.requestDate,
       this.customData,
-      required this.client});
+      required this.client,
+      this.sessionID = 'TODO'});
 
   ///
   factory Confirmation.fromSession(ConfirmationSession session) => Confirmation(
@@ -261,15 +315,18 @@ class Confirmation {
 
   ///
   factory Confirmation.fromMap(Map<String, dynamic> map) => Confirmation(
-      userId: map['user_id'] as String,
-      confirmDate:
-          DateTime.fromMillisecondsSinceEpoch(map['confirm_date'] as int),
-      confirmID: map['confirm_id'] as String,
-      confirmationType: ConfirmationType.values[map['type'] as int],
-      requestDate:
-          DateTime.fromMillisecondsSinceEpoch(map['request_date'] as int),
-      client: MessageReceiver.fromMap(map['client'] as Map<String, dynamic>),
-      customData: map['custom_data'] as Map<String, dynamic>?);
+        userId: map['user_id'] as String,
+        confirmDate:
+            DateTime.fromMillisecondsSinceEpoch(map['confirm_date'] as int),
+        confirmID: map['confirm_id'] as String,
+        confirmationType: ConfirmationType.values[map['type'] as int],
+        requestDate:
+            DateTime.fromMillisecondsSinceEpoch(map['request_date'] as int),
+        customData: map['custom_data'] as Map<String, dynamic>?,
+        client: () {
+          throw 0;
+        }() /*MessageReceiver.fromMap(map['client'] as Map<String, dynamic>)*/,
+      );
 
   ///
   Map<String, dynamic> toMap() => {
@@ -279,7 +336,8 @@ class Confirmation {
         'type': confirmationType.index,
         'request_date': requestDate.millisecondsSinceEpoch,
         'client': client.toMap(),
-        if (customData != null) 'custom_data': customData
+        'session_id': sessionID,
+        if (customData != null) 'custom_data': customData,
       };
 
   ///
@@ -287,6 +345,8 @@ class Confirmation {
 
   ///
   String userId;
+
+  String sessionID;
 
   /// Verification request date
   DateTime requestDate;
@@ -298,7 +358,7 @@ class Confirmation {
   ConfirmationType confirmationType;
 
   ///
-  MessageReceiver client;
+  NonDemandClient client;
 
   ///
   Map<String, dynamic>? customData;

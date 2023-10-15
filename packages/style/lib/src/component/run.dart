@@ -16,25 +16,21 @@
  *
  */
 
-part of '../style_base.dart';
+part of style_dart;
 
 ///
 Binding runService(Component component) {
   var binding = component.createBinding();
   binding.buildBinding();
-
   binding.visitChildren(TreeVisitor((visitor) {
-    if (visitor.currentValue is ServiceWrapperBinding) {
-      (visitor.currentValue as ServiceWrapperBinding).component.service._init();
+    if (visitor.currentValue is ModuleDelegateBinding) {
+      (visitor.currentValue as ModuleDelegateBinding)
+          .component
+          .delegate
+          ._attach(visitor.currentValue);
+      (visitor.currentValue as ModuleDelegateBinding).component.delegate._init();
     }
   }));
-
-  // var runner = CommandRunner("style", "style inline command-line app");
-  // runner.addCommand(SetProperty());
-  //
-  // stdin.listen((event) {
-  //   runner.run(utf8.decode(event).split(" "));
-  // });
 
   return binding;
 }

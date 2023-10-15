@@ -15,7 +15,7 @@
  * limitations under the License.
  *
  */
-part of '../../../style_base.dart';
+part of style_dart;
 
 ///On Document Create Function
 typedef OnEvent = Future<void> Function(AccessEvent event);
@@ -73,9 +73,9 @@ class TriggerService {
   }
 
   ///Trigger
-  FutureOr<T> triggerAndReturn<T extends DbResult, L extends AccessLanguage>(
-      AccessEvent<L> event,
-      FutureOr<T> Function(Access<L> acc) interoperation) async {
+  FutureOr<T> triggerAndReturn<T extends DbResult>(
+      AccessEvent event,
+      FutureOr<T> Function(Access acc) interoperation) async {
     var type = _getTriggerType(event.type);
     if (type == TriggerType.non) return interoperation(event.access);
 
